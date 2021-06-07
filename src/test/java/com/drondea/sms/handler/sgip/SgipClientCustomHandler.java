@@ -1,0 +1,175 @@
+package com.drondea.sms.handler.sgip;
+
+import com.drondea.sms.channel.ChannelSession;
+import com.drondea.sms.common.SequenceNumber;
+import com.drondea.sms.common.util.SgipSequenceNumber;
+import com.drondea.sms.message.IMessage;
+import com.drondea.sms.message.sgip12.SgipSubmitRequestMessage;
+import com.drondea.sms.thirdparty.SmsAlphabet;
+import com.drondea.sms.thirdparty.SmsDcs;
+import com.drondea.sms.type.ICustomHandler;
+import com.drondea.sms.type.IMessageResponseHandler;
+import com.drondea.sms.type.UserChannelConfig;
+import com.drondea.sms.windowing.DuplicateKeyException;
+import com.drondea.sms.windowing.OfferTimeoutException;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
+import io.netty.util.concurrent.EventExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
+
+
+/**
+ * @version V3.0.0
+ * @description: sgip的定制处理器
+ * @author: liyuehai
+ * @date: 2020年06月23日17:35
+ **/
+public class SgipClientCustomHandler extends ICustomHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(SgipClientCustomHandler.class);
+
+    @Override
+    public void fireUserLogin(Channel channel, ChannelSession channelSession) {
+
+        //注册session可写状态监听器
+        channelSession.setSessionEventHandler((writable) -> {
+            System.out.println("可写状态发生改变：" + writable);
+        });
+
+        final EventExecutor executor = channel.pipeline().firstContext().executor();
+
+
+        System.out.println("用户登录成功--开始发送短信");
+
+        //todo 怎么判断消息繁忙状态，不可写状态
+//        new Thread(() -> {
+
+            int i = 0;
+            while (true) {
+
+                if (i == 2000) {
+                    break;
+                }
+                i++;
+
+                if (!channelSession.isWritable()) {
+                    //                    System.out.println("不可写");
+                    //                    continue;
+                }
+                SgipSubmitRequestMessage requestMessage = new SgipSubmitRequestMessage();
+                SequenceNumber sequenceNumber = channelSession.getSequenceNumber();
+                SgipSequenceNumber sgipSequenceNumber = new SgipSequenceNumber(3027130067L, sequenceNumber.next());
+                requestMessage.getHeader().setSequenceNumber(sgipSequenceNumber);
+                String message = "北国风光，千里冰封，万里雪飘。" +
+                        "望长城内外，惟余莽莽；大河上下，顿失滔滔。" +
+                        "山舞银蛇，原驰蜡象，欲与天公试比高。" +
+                        "须晴日，看红装素裹，分外妖娆。" +
+                        "江山如此多娇，引无数英雄竞折腰。" +
+                        "惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。" +
+                        "一代天骄，成吉思汗，只识弯弓射大雕。" +
+                        "俱往矣，数风流人物，还看今朝。";
+//                String message = "sgip您的验证码是：" + Math.random();
+                requestMessage.setMsgContent(message);
+                requestMessage.setServiceType("5");
+                requestMessage.setSpNumber("100001");
+                requestMessage.setCorpId("AAAA");
+                requestMessage.setReportFlag((short) 1);
+                requestMessage.setUserCount((short) 1);
+                //随机号码
+                requestMessage.setUserNumber(new String[]{getRandomPhone()});
+                //收到响应的回调
+                requestMessage.setMessageResponseHandler(new IMessageResponseHandler() {
+                    @Override
+                    public void messageComplete(IMessage request, IMessage response) {
+//                        System.out.println("完成:" + request.getSequenceId());
+                    }
+
+                    @Override
+                    public void messageExpired(String key, IMessage request) {
+
+                    }
+
+                    @Override
+                    public void sendMessageFailed(IMessage request) {
+
+                    }
+                });
+                requestMessage.setMessageCoding(SmsDcs.getGeneralDataCodingDcs(SmsAlphabet.RESERVED));
+//                if(i % 64 == 0) {
+//                    try {
+//                        Thread.sleep(2, 0);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+                executor.submit(() -> {
+                    channelSession.sendMessage(requestMessage);
+                });
+                //                channel.writeAndFlush(requestMessage);
+
+            }
+//        }).start();
+    }
+
+    @Override
+    public void channelClosed(ChannelSession channelSession) {
+
+    }
+
+    @Override
+    public void configPipelineAfterLogin(ChannelPipeline pipeline) {
+        pipeline.addLast("SgipTestSubmitResponseHandler", new SgipTestSubmitResponseHandler());
+    }
+
+    @Override
+    public void responseMessageExpired(Integer sequenceId, IMessage request) {
+        System.out.println("短信超时处理" + sequenceId);
+    }
+
+    @Override
+    public void slidingWindowException(ChannelSession session, ChannelHandlerContext ctx, IMessage message, ChannelPromise promise, Exception exception) {
+        logger.error("slidingWindowException", exception);
+        int retryCount = message.addRetryCount();
+        //失败越多延时越长，防止线程堆积
+        int delay = 10;
+        if (retryCount >= 30) {
+            delay = 500 * retryCount / 10;
+        }
+        if (retryCount > 20) {
+            System.out.println("重试" + retryCount);
+        }
+        //重写
+        ctx.executor().schedule(() -> {
+            session.sendWindowMessage(ctx, message, promise);
+        }, delay, TimeUnit.MILLISECONDS);
+        //滑动窗口key冲突
+        if (exception instanceof DuplicateKeyException) {
+            return;
+        }
+        //滑动窗口获取slot超时
+        if (exception instanceof OfferTimeoutException) {
+            return;
+        }
+        if (exception instanceof InterruptedException) {
+            return;
+        }
+    }
+
+    @Override
+    public boolean customLoginValidate(IMessage message, UserChannelConfig channelConfig, Channel channel) {
+        return true;
+    }
+
+    private static String getRandomPhone() {
+        long round = Math.round((Math.random()) * 10000);
+        if (round < 1000) {
+            round = 1000 + round;
+        }
+        return "1801018" + round;
+    }
+}
