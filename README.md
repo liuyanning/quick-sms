@@ -183,3 +183,7 @@
 
 交流QQ群：
 ![image](docs/images/qq.png)
+
+## 致谢
+- [cloudhopper-smpp](https://github.com/fizzed/cloudhopper-smpp) smpp的协议处理很多都是参考了这个项目
+- [SMSGate](https://github.com/Lihuanghe/SMSGate) 业务很多思路都借鉴了李黄河大佬的SMSGate，重点感谢
