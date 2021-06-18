@@ -131,17 +131,4 @@
       </plugins>
     </pluginManagement>
   </build>
-  <!-- 发布maven私服 -->
-  <distributionManagement>
-    <repository>
-      <id>rdc-snapshots</id>
-      <name>rdc-snapshots</name>
-      <url>https://repo.rdc.aliyun.com/repository/33517-snapshot-t7KkXP/</url>
-    </repository>
-    <snapshotRepository>
-      <id>rdc-repository</id>
-      <name>rdc-repository</name>
-      <url>https://repo.rdc.aliyun.com/repository/33517-release-6y1nBl/</url>
-    </snapshotRepository>
-  </distributionManagement>
 </project>
