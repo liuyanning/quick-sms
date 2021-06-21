@@ -35,24 +35,13 @@ public class SmgpClientPullModeTest {
 
     static AtomicInteger sum = new AtomicInteger();
     public static void main(String[] args) throws InterruptedException {
-//        GlobalConstants.METRICS_CONSOLE_ON = true;
-//        GlobalConstants.METRICS_ON = true;
 
-//        String host = "192.168.1.136";
-//        String host = "127.0.0.1";
 
 //        //本地测试
-//        String host = "127.0.0.1";
-        String host = "152.136.152.128";
+        String host = "127.0.0.1";
         String userName = "100506";
         String password = "w0akYC";
         int port = 8891;
-
-        //线上 智明通讯(电信) 地址
-//        String host = "61.129.57.39";
-//        String userName = "6094";
-//        String password = "6094";
-//        int port = 8080;
 
         //滑动窗口建议值为16
         SmgpClientSocketConfig socketConfig = new SmgpClientSocketConfig("test",

@@ -20,12 +20,9 @@ public class SmgpClientTest {
 //        GlobalConstants.METRICS_CONSOLE_ON = true;
 //        GlobalConstants.METRICS_ON = true;
 
-//        String host = "192.168.1.136";
-//        String host = "127.0.0.1";
 
 //        //本地测试
-//        String host = "127.0.0.1";
-        String host = "192.168.1.119";
+        String host = "127.0.0.1";
         String userName = "100003";
         String password = "123123";
         int port = 8891;

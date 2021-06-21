@@ -16,8 +16,6 @@ import java.io.InputStreamReader;
  **/
 public class SmppClientTest {
     public static void main(String[] args) throws InterruptedException {
-//        String host = "152.136.152.128";
-//        String host = "192.168.1.114";
         String host = "192.168.1.119";
         //滑动窗口建议值为16
         SmppClientSocketConfig socketConfig = new SmppClientSocketConfig("bind1",

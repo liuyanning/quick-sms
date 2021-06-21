@@ -19,7 +19,6 @@ public class SgipClientTest {
     public static void main(String[] args) throws InterruptedException {
         GlobalConstants.METRICS_CONSOLE_ON = false;
         String host = "192.168.1.156";
-//        String host = "39.107.51.17";
         //滑动窗口建议值为16
         SgipClientSocketConfig socketConfig = new SgipClientSocketConfig("test",
                 10 * 1000, 16, host, 8801);
