@@ -36,7 +36,6 @@ public class SmgpClientPullModeTest {
     static AtomicInteger sum = new AtomicInteger();
     public static void main(String[] args) throws InterruptedException {
 
-
 //        //本地测试
         String host = "127.0.0.1";
         String userName = "100506";
