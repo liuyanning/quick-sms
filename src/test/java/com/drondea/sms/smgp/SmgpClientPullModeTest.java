@@ -88,7 +88,8 @@ public class SmgpClientPullModeTest {
                 requestMessage.setMsgContent(message);
                 requestMessage.setServiceId("1");
                 requestMessage.setMsgSrc("AAAA");
-                requestMessage.setSrcTermId("" + (int) (Math.random() * 1000));
+                //码号
+                requestMessage.setSrcTermId("1069");
                 requestMessage.setNeedReport(true);
                 requestMessage.setDestTermIdArray(new String[]{"17303110626"});
                 requestMessage.setReserve("1234567");
