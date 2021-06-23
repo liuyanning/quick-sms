@@ -53,9 +53,9 @@ public class Sgip12MessageCodec extends MessageToMessageCodec<ByteBuf, AbstractS
         int timestamp = bytebuf.readInt();
         int sequenceId = bytebuf.readInt();
 
-        if (sequenceId == 0) {
-            logger.error("sequenceId is null,please set sequenceId.");
-        }
+//        if (sequenceId == 0) {
+//            logger.error("sequenceId is null,please set sequenceId.");
+//        }
         SgipSequenceNumber sequenceNumber = SgipSequenceNumber.wrapSequenceNumber(nodeId, timestamp, sequenceId);
         SgipHeader header = new SgipHeader(totalLength, commandId, sequenceNumber);
         //获取具体的编解码器进行处理

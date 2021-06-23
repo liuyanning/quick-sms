@@ -72,9 +72,9 @@ public class Cmpp30MessageCodec extends MessageToMessageCodec<ByteBuf, AbstractC
         int commandId = bytebuf.readInt();
         int sequenceId = bytebuf.readInt();
 
-        if (sequenceId == 0) {
-            logger.error("sequenceId is null,please set sequenceId.");
-        }
+//        if (sequenceId == 0) {
+//            logger.error("sequenceId is null,please set sequenceId.");
+//        }
         CmppHeader header = new CmppHeader(totalLength, commandId, sequenceId);
         //获取具体的编解码器进行处理
         ICodec codec = codecMap.get(commandId);

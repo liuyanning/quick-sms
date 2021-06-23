@@ -52,9 +52,9 @@ public class Smgp30MessageCodec extends MessageToMessageCodec<ByteBuf, AbstractS
         int commandId = bytebuf.readInt();
         int sequenceId = bytebuf.readInt();
 
-        if (sequenceId == 0) {
-            logger.error("sequenceId is null,please set sequenceId.");
-        }
+//        if (sequenceId == 0) {
+//            logger.error("sequenceId is null,please set sequenceId.");
+//        }
         SmgpHeader header = new SmgpHeader(totalLength, commandId, sequenceId);
         //获取具体的编解码器进行处理
         ICodec codec = codecMap.get(commandId);
