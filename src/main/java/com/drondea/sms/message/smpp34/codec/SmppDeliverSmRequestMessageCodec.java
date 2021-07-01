@@ -1,5 +1,6 @@
 package com.drondea.sms.message.smpp34.codec;
 
+import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.common.util.SmppUtil;
 import com.drondea.sms.message.ICodec;
 import com.drondea.sms.message.IHeader;
@@ -43,7 +44,7 @@ public class SmppDeliverSmRequestMessageCodec implements ICodec {
             message.setReplaceIfPresentFlag(bodyBuffer.readByte());
             message.setDataCoding(bodyBuffer.readByte());
             message.setSmDefaultMsgIid(bodyBuffer.readByte());
-            message.setSmLength(bodyBuffer.readByte());
+            message.setSmLength((short) CommonUtil.byteToInt(bodyBuffer.readByte()));
             byte[] contentBytes = new byte[message.getSmLength()];
             bodyBuffer.readBytes(contentBytes);
             message.setShortMessage(contentBytes);
