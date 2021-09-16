@@ -22,12 +22,10 @@ import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -405,14 +403,14 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
 
     @Override
     protected void pullAndSendWindowMsgs() {
-        int delay = 3;
+        int delay = 10;
         //通道关闭直接return
         if (!this.channel.isActive()) {
             return;
         }
         //查看是否可写，不可写延时
         if (!this.channel.isWritable()) {
-            delay = 10;
+            delay = 50;
             //定时拉取
             delayPullWindowMsg(delay);
             return;
@@ -421,28 +419,27 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
         //查看滑动窗口空闲个数,没有滑动窗口延时
         int freeSize = getFreeWindowSize(this.slidingWindow);
         if (freeSize <= 0) {
-            delay = 10;
+            delay = 30;
             delayPullWindowMsg(delay);
             return;
         }
         //循环写入滑动窗口
         for (int i = 0; i < freeSize; i++) {
             //拉取数据到本地缓存
-            long cacheSize = pullMsgsToCache(this.cacheMsg, this.messageProvider);
+            long cacheSize = pullMsgToCache(this.cacheMsg, this.messageProvider);
             //没有数据直接退出并延时重试
             if (cacheSize == 0) {
-                delay = 10;
                 break;
             }
             //查看是否达到限速条件，达到限速条件退出，延时获取
             if (this.counterLimiter != null && !this.counterLimiter.tryAcquire()) {
-                delay = 10;
+                delay = 50;
                 break;
             }
 
             //判断是否可写
             if (!this.channel.isWritable()) {
-                delay = 10;
+                delay = 50;
                 break;
             }
             //未达到限速条件写入一个片段

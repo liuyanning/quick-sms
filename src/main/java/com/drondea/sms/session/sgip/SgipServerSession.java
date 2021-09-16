@@ -174,7 +174,7 @@ public class SgipServerSession extends AbstractServerSession {
         if (customHandler != null) {
             customHandler.configPipelineAfterLogin(pipeline);
         }
-
+//        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
         notifyChannelLoginSuccess(channel);
     }
 

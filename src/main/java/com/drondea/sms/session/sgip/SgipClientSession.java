@@ -3,11 +3,10 @@ package com.drondea.sms.session.sgip;
 import com.drondea.sms.common.util.SgipSequenceNumber;
 import com.drondea.sms.conf.sgip.SgipClientSocketConfig;
 import com.drondea.sms.message.IMessage;
-import com.drondea.sms.message.sgip12.AbstractSgipMessage;
-import com.drondea.sms.message.sgip12.SgipBindRequestMessage;
-import com.drondea.sms.message.sgip12.SgipBindResponseMessage;
+import com.drondea.sms.message.sgip12.*;
 import com.drondea.sms.session.AbstractClientSession;
 import com.drondea.sms.session.SessionManager;
+import com.drondea.sms.type.GlobalConstants;
 import com.drondea.sms.type.ICustomHandler;
 import com.drondea.sms.type.SgipConstants;
 import io.netty.channel.Channel;
@@ -30,6 +29,10 @@ import java.util.concurrent.TimeUnit;
 public class SgipClientSession extends AbstractClientSession {
 
     private static final Logger logger = LoggerFactory.getLogger(SgipClientSession.class);
+    /**
+     * 提交超速错误码
+     */
+    private static final short OVER_SPEED_CODE = 43;
 
     /**
      * 创建session管理器
@@ -110,7 +113,7 @@ public class SgipClientSession extends AbstractClientSession {
         if (customHandler != null) {
             customHandler.configPipelineAfterLogin(pipeline);
         }
-
+//        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
         //发起一个事件，用户登录成功，可以发送短信了，要放在后边才能通知前边所有handler
         notifyChannelLoginSuccess(channel);
 
@@ -167,6 +170,23 @@ public class SgipClientSession extends AbstractClientSession {
 
     @Override
     protected boolean needSendLater(IMessage request, IMessage response) {
+        if (response instanceof SgipSubmitResponseMessage) {
+            SgipSubmitResponseMessage submitResp = (SgipSubmitResponseMessage) response;
+
+            if ((submitResp.getResult() != 0L) && (submitResp.getResult() != OVER_SPEED_CODE)) {
+                logger.error("Receive Err Response result: {} . Req: {} ,Resp:{}", submitResp.getResult(), request, submitResp);
+            }
+
+            return submitResp.getResult() == OVER_SPEED_CODE;
+        } else if (response instanceof SgipDeliverResponseMessage) {
+            SgipDeliverResponseMessage deliverResp = (SgipDeliverResponseMessage) response;
+
+            if ((deliverResp.getResult() != 0L) && (deliverResp.getResult() != OVER_SPEED_CODE)) {
+                logger.error("Receive Err Response result: {} . Req: {} ,Resp:{}",deliverResp.getResult(), request, deliverResp);
+            }
+
+            return deliverResp.getResult() == OVER_SPEED_CODE;
+        }
         return false;
     }
 }

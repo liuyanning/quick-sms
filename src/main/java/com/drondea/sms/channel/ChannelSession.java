@@ -249,6 +249,10 @@ public abstract class ChannelSession implements SessionChannelListener {
      */
     public abstract int getWaitSize();
 
+    /**
+     * 登陆成功后调用
+     * @param channel
+     */
     protected abstract void notifyChannelLoginSuccess(Channel channel);
 
 
@@ -281,7 +285,7 @@ public abstract class ChannelSession implements SessionChannelListener {
         return slidingWindow.getFreeSize();
     }
 
-    protected long pullMsgsToCache(LinkedBlockingQueue<IMessage> cacheMsg, MessageProvider messageProvider){
+    protected long pullMsgToCache(LinkedBlockingQueue<IMessage> cacheMsg, MessageProvider messageProvider){
         //有缓存消息退出
         if (cacheMsg.size() > 0) {
             return cacheMsg.size();
@@ -351,9 +355,9 @@ public abstract class ChannelSession implements SessionChannelListener {
 
             //超速重试
             if (needSendLater(windowMessage.getMessage(), message)) {
-                logger.error("message overspeed {}", message);
-                //网关异常时会发送大量超速错误(result=8),造成大量重发，浪费资源。这里先停止发送，过30毫秒再回恢复
-                setchannelunwritable(windowMessage.getCtx(), 30);
+                logger.error("message over speed, response {}, request {}", message, windowMessage.getMessage());
+                //网关异常时会发送大量超速错误(result=8),造成大量重发，浪费资源。这里先停止发送，过50毫秒再回恢复
+                setChannelUnWritable(windowMessage.getCtx(), 50);
                 //重发超速的,放到本地缓存重新发送
                 DefaultEventGroupFactory.getInstance().getPullScheduleExecutor().schedule(() -> {
                     reSendMessage(windowMessage.getCtx(), windowMessage.getMessage(), windowMessage.getPromise());
@@ -418,7 +422,7 @@ public abstract class ChannelSession implements SessionChannelListener {
         sendWaitingMessage(slidingWindow);
     }
 
-    protected void setchannelunwritable(final ChannelHandlerContext ctx, long millitime){
+    protected void setChannelUnWritable(final ChannelHandlerContext ctx, long milliTime){
         if(ctx.channel().isWritable()){
             setUserDefinedWritability(ctx, false);
 
@@ -427,7 +431,7 @@ public abstract class ChannelSession implements SessionChannelListener {
                 public void run() {
                     setUserDefinedWritability(ctx, true);
                 }
-            }, millitime, TimeUnit.MILLISECONDS);
+            }, milliTime, TimeUnit.MILLISECONDS);
         }
     }
 

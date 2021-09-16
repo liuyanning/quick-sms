@@ -10,6 +10,7 @@ import com.drondea.sms.conf.cmpp.CmppClientSocketConfig;
 import com.drondea.sms.session.AbstractClientSession;
 import com.drondea.sms.session.SessionManager;
 import com.drondea.sms.type.CmppConstants;
+import com.drondea.sms.type.GlobalConstants;
 import com.drondea.sms.type.ICustomHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -32,6 +33,10 @@ import java.util.concurrent.TimeUnit;
 public class CmppClientSession extends AbstractClientSession {
 
     private static final Logger logger = LoggerFactory.getLogger(CmppClientSession.class);
+    /**
+     * 提交超速错误码
+     */
+    private static final short OVER_SPEED_CODE = 8;
 
     /**
      * 创建session管理器
@@ -113,7 +118,7 @@ public class CmppClientSession extends AbstractClientSession {
         if (customHandler != null) {
             customHandler.configPipelineAfterLogin(pipeline);
         }
-
+//        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
         //发起一个事件，用户登录成功，可以发送短信了，要放在后边才能通知前边所有handler
         notifyChannelLoginSuccess(channel);
 
@@ -203,19 +208,19 @@ public class CmppClientSession extends AbstractClientSession {
         if (response instanceof CmppSubmitResponseMessage) {
             CmppSubmitResponseMessage submitResp = (CmppSubmitResponseMessage) response;
 
-            if ((submitResp.getResult() != 0L) && (submitResp.getResult() != 8L)) {
+            if ((submitResp.getResult() != 0L) && (submitResp.getResult() != OVER_SPEED_CODE)) {
                 logger.error("Receive Err Response result: {} . Req: {} ,Resp:{}",submitResp.getResult(), request, submitResp);
             }
 
-            return submitResp.getResult() == 8L;
+            return submitResp.getResult() == OVER_SPEED_CODE;
         } else if (response instanceof CmppDeliverResponseMessage) {
             CmppDeliverResponseMessage deliverResp = (CmppDeliverResponseMessage) response;
 
-            if ((deliverResp.getResult() != 0L) && (deliverResp.getResult() != 8L)) {
+            if ((deliverResp.getResult() != 0L) && (deliverResp.getResult() != OVER_SPEED_CODE)) {
                 logger.error("Receive Err Response result: {} . Req: {} ,Resp:{}",deliverResp.getResult(), request, deliverResp);
             }
 
-            return deliverResp.getResult() == 8L;
+            return deliverResp.getResult() == OVER_SPEED_CODE;
         }
         return false;
     }

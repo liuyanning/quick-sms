@@ -9,6 +9,7 @@ import com.drondea.sms.message.smgp30.msg.SmgpConnectRequestMessage;
 import com.drondea.sms.message.smgp30.msg.SmgpConnectResponseMessage;
 import com.drondea.sms.session.AbstractClientSession;
 import com.drondea.sms.session.SessionManager;
+import com.drondea.sms.type.GlobalConstants;
 import com.drondea.sms.type.ICustomHandler;
 import com.drondea.sms.type.SmgpConstants;
 
@@ -116,7 +117,7 @@ public class SmgpClientSession extends AbstractClientSession {
         if (customHandler != null) {
             customHandler.configPipelineAfterLogin(pipeline);
         }
-
+//        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
         //发起一个事件，用户登录成功，可以发送短信了，要放在后边才能通知前边所有handler
         notifyChannelLoginSuccess(channel);
 

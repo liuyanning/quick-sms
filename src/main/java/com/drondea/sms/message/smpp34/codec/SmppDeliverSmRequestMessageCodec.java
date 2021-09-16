@@ -44,7 +44,7 @@ public class SmppDeliverSmRequestMessageCodec implements ICodec {
             message.setReplaceIfPresentFlag(bodyBuffer.readByte());
             message.setDataCoding(bodyBuffer.readByte());
             message.setSmDefaultMsgIid(bodyBuffer.readByte());
-            message.setSmLength((short) CommonUtil.byteToInt(bodyBuffer.readByte()));
+            message.setSmLength(CommonUtil.byteToShort(bodyBuffer.readByte()));
             byte[] contentBytes = new byte[message.getSmLength()];
             bodyBuffer.readBytes(contentBytes);
             message.setShortMessage(contentBytes);

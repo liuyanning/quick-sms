@@ -4,6 +4,7 @@ import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.conf.ServerSocketConfig;
 import com.drondea.sms.conf.cmpp.CmppServerSocketConfig;
+import com.drondea.sms.handler.TailHandler;
 import com.drondea.sms.handler.limiter.AbstractCounterLimitHandler;
 import com.drondea.sms.handler.transcoder.Cmpp20MessageCodec;
 import com.drondea.sms.handler.transcoder.Cmpp30MessageCodec;
@@ -66,7 +67,7 @@ public class CmppServerSession extends AbstractServerSession {
         UserChannelConfig userChannelConfig = sessionManager.getUserChannelConfig(sourceAddr);
         short version = msg.getVersion();
         if (userChannelConfig == null || !validIpAddress(userChannelConfig, getChannel())) {
-            //登录失败
+            //登录失败，用户不存在或者IP不合法
             sendLoginFailed(msg, userChannelConfig, 2, version);
             return;
         }
@@ -91,17 +92,18 @@ public class CmppServerSession extends AbstractServerSession {
             if (addResult) {
 
                 CmppServerSocketConfig socketConfig = (CmppServerSocketConfig) getConfiguration();
+                short serverVersion = socketConfig.getVersion();
                 //客户端设置的版本号不一致，适应客户端
-                if (socketConfig.getVersion() == CmppConstants.VERSION_20 && version >= CmppConstants.VERSION_30) {
+                if (serverVersion == CmppConstants.VERSION_20 && version >= CmppConstants.VERSION_30) {
                     changeVersion(getChannel(), CmppConstants.VERSION_30);
-                    version = CmppConstants.VERSION_30;
+                    serverVersion = CmppConstants.VERSION_30;
                 }
-                if (socketConfig.getVersion() == CmppConstants.VERSION_30 && version < CmppConstants.VERSION_30) {
+                if (serverVersion == CmppConstants.VERSION_30 && version < CmppConstants.VERSION_30) {
                     changeVersion(getChannel(), CmppConstants.VERSION_20);
-                    version = CmppConstants.VERSION_20;
+                    serverVersion = CmppConstants.VERSION_20;
                 }
                 setState(STATE_LOGIN_SUCCESS);
-                sendLoginSuccess(msg, userChannelConfig, version);
+                sendLoginSuccess(msg, userChannelConfig, serverVersion);
 
                 //登录成功后的处理
                 doAfterLogin(userChannelConfig);
@@ -115,7 +117,7 @@ public class CmppServerSession extends AbstractServerSession {
             }
 
         } else {
-            //认证错误
+            //认证错误或者自定义校验错误
             validResult = 3;
         }
 
@@ -219,7 +221,7 @@ public class CmppServerSession extends AbstractServerSession {
         if (customHandler != null) {
             customHandler.configPipelineAfterLogin(pipeline);
         }
-
+//        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
         notifyChannelLoginSuccess(channel);
     }
 

@@ -53,7 +53,7 @@ public abstract class AbstractLongMessageHandler<T extends ILongSMSMessage> exte
         String key = generateFrameKey(msg);
         try {
             //进行短信的组合，如果组合成功返回，未成功返回null
-            SmsMessage smsMessage = LongMessageSliceManager.reassemble(key, msg, () -> generateBatchNumber());
+            SmsMessage smsMessage = LongMessageSliceManager.reassemble(key, msg, GlobalConstants.getBatchNumberCreator());
             if (smsMessage != null) {
                 msg.setSmsMsg(smsMessage);
             }
@@ -65,16 +65,6 @@ public abstract class AbstractLongMessageHandler<T extends ILongSMSMessage> exte
             IMessage res = responseErr(msg);
             ctx.writeAndFlush(res);
         }
-    }
-
-
-    /**
-     * 生成批次号
-     *
-     * @return
-     */
-    public String generateBatchNumber() {
-        return new MsgId().toString();
     }
 
     /**

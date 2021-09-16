@@ -1,10 +1,15 @@
 package com.drondea.sms.message.smpp34;
 
 
+import com.drondea.sms.message.smpp34.codec.SmppDeliverSmRequestMessageCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 public class SmppReportRequestMessage {
-
+    private static final Logger logger = LoggerFactory.getLogger(SmppReportRequestMessage.class);
 
     private String id;
     private String sub;
@@ -101,16 +106,38 @@ public class SmppReportRequestMessage {
 
         try {
             String txt = new String(value, "ISO-8859-1");
+            txt = txt.replace("submit date", "submit_date");
+            txt = txt.replace("done date", "done_date");
+            // id:1649893403 sub:001 dlvrd:001 submit date:1911291216 done date:1911291408
+            // stat:DELIVRD err:000 text:???????????? ????100
+            // id:48f492ac-6b51-4b0f-b51d-5988e6a166ed submit date:1911292158 done
+            // date:1911292158 stat:DELIVRD err:002
             String[] c = txt.split(" ");
-            this.id = c[0].split(":")[1];
-            this.sub = c[1].split(":")[1];
-            this.dlvrd = c[2].split(":")[1];
-            this.submit_date = c[4].split(":")[1];
-            this.done_date = c[6].split(":")[1];
-            this.stat = c[7].split(":")[1];
-            this.err = c[8].split(":")[1];
-            this.text = c[9].split(":")[1];
+            Arrays.asList(c).forEach(item -> {
+                String[] infos = item.split(":");
+                if (infos.length < 2) {
+                    return;
+                }
+                if (infos[0].equalsIgnoreCase("id")) {
+                    this.id = infos[1];
+                } else if (infos[0].equalsIgnoreCase("sub")) {
+                    this.sub = infos[1];
+                } else if (infos[0].equalsIgnoreCase("dlvrd")) {
+                    this.dlvrd = infos[1];
+                } else if (infos[0].equalsIgnoreCase("submit_date")) {
+                    this.submit_date = infos[1];
+                } else if (infos[0].equalsIgnoreCase("done_date")) {
+                    this.done_date = infos[1];
+                } else if (infos[0].equalsIgnoreCase("stat")) {
+                    this.stat = infos[1];
+                } else if (infos[0].equalsIgnoreCase("err")) {
+                    this.err = infos[1];
+                } else if (infos[0].equalsIgnoreCase("text")) {
+                    this.text = infos[1];
+                }
+            });
         } catch (Exception e) {
+            logger.error("smpp report message:", e);
         }
     }
 

@@ -170,15 +170,21 @@ public class SmsTextMessage extends SmsConcatMessage implements Serializable {
 //                //字符串转换为7字节编码, 进行压缩
 //                ud = new SmsUserData(CharsetUtil.map(CharsetUtil.NAME_PACKED_GSM).encode(text_), dcs_);
 //                break;
-            case ASCII:
-            case LATIN1:
-            case UCS2:
-            case GBK:
-            case RESERVED:
-                ud = new SmsUserData(text_.getBytes(CommonUtil.switchCharset(alp)), dcs_);
-                break;
+//            case ASCII:
+//                ud = new SmsUserData(text_.getBytes(CommonUtil.switchCharset(SmsAlphabet.ASCII)), dcs_);
+//                break;
+//            case LATIN1:
+//                ud = new SmsUserData(text_.getBytes(CommonUtil.switchCharset(SmsAlphabet.LATIN1)), dcs_);
+//                break;
+//            case UCS2:
+//            case GBK:
+//                ud = new SmsUserData(text_.getBytes(CommonUtil.switchCharset(SmsAlphabet.GBK)), dcs_);
+//                break;
+//            case RESERVED:
+//                ud = new SmsUserData(text_.getBytes(CommonUtil.switchCharset(alp)), dcs_);
+//                break;
             default:
-                ud = new SmsUserData(text_.getBytes(CommonUtil.switchCharset(SmsAlphabet.UCS2)), SmsDcs.getGeneralDataCodingDcs(SmsAlphabet.UCS2));
+                ud = new SmsUserData(text_.getBytes(CommonUtil.switchCharset(alp)), dcs_);
                 break;
         }
 

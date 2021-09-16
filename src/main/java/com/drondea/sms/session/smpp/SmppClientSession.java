@@ -10,6 +10,7 @@ import com.drondea.sms.message.smpp34.SmppBindTransceiverResponseMessage;
 import com.drondea.sms.session.AbstractClientSession;
 import com.drondea.sms.session.SessionManager;
 import com.drondea.sms.type.CmppConstants;
+import com.drondea.sms.type.GlobalConstants;
 import com.drondea.sms.type.ICustomHandler;
 import com.drondea.sms.type.SmppConstants;
 import io.netty.channel.Channel;
@@ -107,7 +108,7 @@ public class SmppClientSession extends AbstractClientSession {
         if (customHandler != null) {
             customHandler.configPipelineAfterLogin(pipeline);
         }
-
+//        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
         //发起一个事件，用户登录成功，可以发送短信了，要放在后边才能通知前边所有handler
         notifyChannelLoginSuccess(channel);
 

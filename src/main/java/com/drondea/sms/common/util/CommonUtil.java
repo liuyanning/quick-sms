@@ -141,6 +141,10 @@ public final class CommonUtil {
         return (int) (b & 0x0ff);
     }
 
+    public static short byteToShort(byte b) {
+        return (short) (b & 0x0ff);
+    }
+
     /**
      * ASCII和LATIN1都是单字节编码采用ISO_8859_1,ISO_8859_1向下兼容ASCII,单字节编码
      * UCS2双字节编码采用UTF_16BE
@@ -158,6 +162,8 @@ public final class CommonUtil {
                 return StandardCharsets.UTF_16BE;
             case GBK:
                 return Charset.forName("GBK");
+            case UTF8:
+                return StandardCharsets.UTF_8;
             case RESERVED:
                 return Charset.forName("GBK");
             default:

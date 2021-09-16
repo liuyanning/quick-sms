@@ -3,10 +3,7 @@ package com.drondea.sms.message.slice;
 import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.message.ILongSMSMessage;
 import com.drondea.sms.thirdparty.*;
-import com.drondea.sms.type.GlobalConstants;
-import com.drondea.sms.type.IDBStore;
-import com.drondea.sms.type.NotSupportedException;
-import com.drondea.sms.type.SignaturePosition;
+import com.drondea.sms.type.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCountUtil;
@@ -57,13 +54,13 @@ public class LongMessageSliceManager {
     /**
      * 进行短信拼接，获取一条完整的长短信，如果长短信组装未完成，返回null
      **/
-    public static SmsMessage reassemble(String serviceNum, ILongSMSMessage msg, Supplier<String> batchNumberSupplier) throws NotSupportedException {
+    public static SmsMessage reassemble(String serviceNum, ILongSMSMessage msg, IBatchNumberCreator batchNumberCreator) throws NotSupportedException {
 
         //创建短信片段对象
         LongMessageSlice slice = msg.generateSlice();
         // udhi只取第一个bit
         if ((slice.getTpUdhi() & 0x01) == 0) {
-            String batchNumber = batchNumberSupplier.get();
+            String batchNumber = batchNumberCreator.generateBatchNumber();
             msg.setBatchNumber(batchNumber);
             // 短信内容不带协议头，直接获取短信内容
             SmsMessage smsMsg = buildTextMessage(slice.getPayloadbytes(), slice.getMsgFmt());
@@ -74,7 +71,7 @@ public class LongMessageSliceManager {
                 slice.parseUserDataHeader();
                 //长短信长度为1
                 if (slice.getFrameLength() == 1) {
-                    String batchNumber = batchNumberSupplier.get();
+                    String batchNumber = batchNumberCreator.generateBatchNumber();
                     msg.setBatchNumber(batchNumber);
                     SmsMessage smsMsg = buildTextMessage(slice.getPayloadbytes(), slice.getMsgFmt());
                     return smsMsg;
@@ -87,7 +84,7 @@ public class LongMessageSliceManager {
 
                     sliceContainer = createSliceContainer(serviceNum, slice);
                     //生成新的batchNumber
-                    String batchNumber = batchNumberSupplier.get();
+                    String batchNumber = batchNumberCreator.generateBatchNumber();
                     sliceContainer.setBatchNumber(batchNumber);
                     sliceContainer.setMsg(msg);
 

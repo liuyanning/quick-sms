@@ -28,6 +28,11 @@ public enum SmsAlphabet {
     GBK,
 
     /**
+     * UTF-8
+     */
+    UTF8,
+
+    /**
      * Reserved.
      */
     RESERVED;

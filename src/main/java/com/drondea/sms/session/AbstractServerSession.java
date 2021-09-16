@@ -228,14 +228,14 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
 
     @Override
     protected void pullAndSendWindowMsgs() {
-        int delay = 3;
+        int delay = 10;
         //查看是否可写，不可写延时
         if (!this.channel.isActive()) {
             return;
         }
 
         if (!this.channel.isWritable()) {
-            delay = 10;
+            delay = 100;
             //定时拉取
             delayPullWindowMsg(delay);
             return;
@@ -244,7 +244,6 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
         //查看滑动窗口空闲个数n
         int freeSize = getFreeWindowSize(this.slidingWindow);
         if (freeSize == 0) {
-            delay = 10;
             delayPullWindowMsg(delay);
             return;
         }
@@ -252,10 +251,9 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
         //循环写入滑动窗口
         for (int i = 0; i < freeSize; i++) {
             //拉取数据到本地缓存
-            long cacheSize = pullMsgsToCache(this.cacheMsg, this.messageProvider);
+            long cacheSize = pullMsgToCache(this.cacheMsg, this.messageProvider);
             //没有数据直接退出并延时重试
             if (cacheSize == 0) {
-                delay = 10;
                 break;
             }
 

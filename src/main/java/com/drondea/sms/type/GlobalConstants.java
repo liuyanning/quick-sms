@@ -4,6 +4,7 @@ package com.drondea.sms.type;
 import com.drondea.sms.common.CommonSequenceNumber;
 import com.drondea.sms.common.SmgpSequenceNumber;
 import com.drondea.sms.handler.ServerMetricsMeterHandler;
+import com.drondea.sms.handler.TailHandler;
 
 /**
  * @version V3.0.0
@@ -23,6 +24,11 @@ public class GlobalConstants {
     public final static CommonSequenceNumber sequenceNumber = new CommonSequenceNumber();
     public final static SmgpSequenceNumber smgpSequenceNumber = new SmgpSequenceNumber();
 
+    /**
+     * 默认批次号生成器
+     */
+    public static IBatchNumberCreator batchNumberCreator = new DefaultBatchNumberCreator();
+
     public static IDBStore dbStore = new DefaultDBStore();
 
     public static int DEFAULT_WINDOW_MONITOR_INTERVAL = -1;
@@ -34,4 +40,13 @@ public class GlobalConstants {
     public static final String MUTL_MOBILE_SPLIT = "\\||,|，|\r\n|\n";
 
     public final static ServerMetricsMeterHandler SERVER_METRICS_METER_HANDLER = new ServerMetricsMeterHandler();
+    public final static TailHandler TAIL_HANDLER = new TailHandler();
+
+    public static IBatchNumberCreator getBatchNumberCreator() {
+        return batchNumberCreator;
+    }
+
+    public static void setBatchNumberCreator(IBatchNumberCreator batchNumberCreator) {
+        GlobalConstants.batchNumberCreator = batchNumberCreator;
+    }
 }
