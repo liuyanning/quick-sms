@@ -3,6 +3,7 @@
  */
 package com.drondea.sms.common.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -95,7 +96,6 @@ public class SgipSequenceNumber implements Serializable {
 
     public long toLong() {
         return ((long) sequenceId & 0xFFFFFFFFL) | (((long) timestamp << 32) & 0xFFFFFFFF00000000L);
-
     }
 
     public static SgipSequenceNumber wrapSequenceNumber(long nodeId, int timestamp, int sequenceId) {
@@ -108,9 +108,11 @@ public class SgipSequenceNumber implements Serializable {
      */
     @Override
     public String toString() {
-        return String
-                .format("%1$010d%2$010d%3$011d",
-                        nodeId, timestamp, sequenceId);
+        StringBuilder sb = new StringBuilder();
+        sb.append(StringUtils.leftPad(String.valueOf(nodeId), 10,'0'))
+                .append(StringUtils.leftPad(String.valueOf(timestamp), 10,'0'))
+                .append(StringUtils.leftPad(String.valueOf(sequenceId), 11,'0'));
+        return sb.toString();
     }
 
 }

@@ -22,6 +22,7 @@ import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +59,8 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
     private SessionManager sessionManager;
 
     private AtomicInteger qpsWaitingSize;
+    //端口号
+    private int localPort;
 
 
     /**
@@ -83,6 +86,8 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
         this.sequenceNumber = new CommonSequenceNumber();
 
         this.sessionManager = sessionManager;
+        InetSocketAddress socket = (InetSocketAddress) this.channel.localAddress();
+        this.localPort = socket.getPort();
 
         if (configuration.isCountersEnabled()) {
             this.counters = sessionManager.createSessionCounters();
@@ -635,5 +640,13 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
         if (messageProvider != null) {
             messageProvider.responseMessageMatchFailed(requestKey, response);
         }
+    }
+
+    /**
+     * 获取本地连接的端口号
+     * @return
+     */
+    public int getLocalPort() {
+        return this.localPort;
     }
 }

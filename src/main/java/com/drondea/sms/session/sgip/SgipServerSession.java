@@ -93,7 +93,7 @@ public class SgipServerSession extends AbstractServerSession {
             validResult = 3;
         }
 
-        failedLogin(msg, validResult);
+        failedLogin(userChannelConfig, msg, validResult);
         //登录失败
         sendLoginFailed(msg, userChannelConfig, validResult);
     }

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -373,6 +374,7 @@ public abstract class AbstractServerSessionManager implements SessionManager {
             if (readLimit != qpsLimit) {
                 //新连接过来可以改变速度
                 rateLimiter.configureRead(qpsLimit);
+                logger.info("user {} change speed to {}", userName, qpsLimit);
             }
         }
         //是否是第二种限速方式
@@ -398,5 +400,13 @@ public abstract class AbstractServerSessionManager implements SessionManager {
     @Override
     public void setMessageProvider(MessageProvider messageProvider) {
         this.messageProvider = messageProvider;
+    }
+
+    /**
+     * 获取所有登陆的用户
+     * @return
+     */
+    public Set<String> getAllLoginUser() {
+        return userChannelGroupMap.keySet();
     }
 }

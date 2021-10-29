@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Calendar;
 
 public class MsgId implements Serializable {
     private static final long serialVersionUID = 945466149547731811L;
@@ -73,7 +74,6 @@ public class MsgId implements Serializable {
      * @param timeMillis
      */
     public MsgId(long timeMillis) {
-
         this(timeMillis, ProcessID, GlobalConstants.sequenceNumber.next());
     }
     /**
@@ -96,15 +96,28 @@ public class MsgId implements Serializable {
      * @param sequenceId
      */
     public MsgId(long timeMillis, int gateId, int sequenceId) {
-        setMonth(Integer.parseInt(String.format("%tm", timeMillis)));
-        setDay(Integer.parseInt(String.format("%td", timeMillis)));
-        setHour(Integer.parseInt(String.format("%tH", timeMillis)));
-        setMinutes(Integer.parseInt(String.format("%tM", timeMillis)));
-        setSeconds(Integer.parseInt(String.format("%tS", timeMillis)));
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(timeMillis);
+        setMonth(cal.get(Calendar.MONTH) + 1);
+        setDay(cal.get(Calendar.DAY_OF_MONTH));
+        setHour(cal.get(Calendar.HOUR_OF_DAY));
+        setMinutes(cal.get(Calendar.MINUTE));
+        setSeconds(cal.get(Calendar.SECOND));
         //扩大范围+毫秒
-        setGateId(gateId + Integer.parseInt(String.format("%tL", timeMillis)));
+        setGateId(gateId + cal.get(Calendar.MILLISECOND));
         setSequenceId(sequenceId);
     }
+
+    public MsgId(int month, int day, int hour, int minutes, int seconds, int gateId, int sequenceId) {
+        this.month = month;
+        this.day = day;
+        this.hour = hour;
+        this.minutes = minutes;
+        this.seconds = seconds;
+        this.gateId = gateId;
+        this.sequenceId = sequenceId;
+    }
+
     /**
      * @return the month
      */
@@ -194,9 +207,15 @@ public class MsgId implements Serializable {
      */
     @Override
     public String toString() {
-        return String
-                .format("%1$02d%2$02d%3$02d%4$02d%5$02d%6$07d%7$05d",
-                        month, day, hour, minutes, seconds, gateId, sequenceId);
+        StringBuilder sb = new StringBuilder();
+        sb.append(StringUtils.leftPad(String.valueOf(month), 2,'0'))
+                .append(StringUtils.leftPad(String.valueOf(day), 2,'0'))
+                .append(StringUtils.leftPad(String.valueOf(hour), 2,'0'))
+                .append(StringUtils.leftPad(String.valueOf(minutes), 2,'0'))
+                .append(StringUtils.leftPad(String.valueOf(seconds), 2,'0'))
+                .append(StringUtils.leftPad(String.valueOf(gateId), 7,'0'))
+                .append(StringUtils.leftPad(String.valueOf(sequenceId), 5,'0'));
+        return sb.toString();
     }
 
     public String toHexString(boolean toLowerCase) {

@@ -6,7 +6,7 @@
 
   <groupId>com.drondea.sms</groupId>
   <artifactId>sms-quick</artifactId>
-  <version>1.0.11</version>
+  <version>1.0.15</version>
 
   <name>QuickSMS</name>
   <url>http://www.drondea.com/</url>

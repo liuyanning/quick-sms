@@ -32,14 +32,13 @@ public final class DefaultMsgIdUtil {
 
     public static MsgId bytes2MsgId(byte[] bytes) {
         long result = ByteBuffer.wrap(bytes).getLong();
-        MsgId msgId = new MsgId();
-        msgId.setMonth((int) ((result >>> 60) & 0xf));
-        msgId.setDay((int) ((result >>> 55) & 0x1f));
-        msgId.setHour((int) ((result >>> 50) & 0x1f));
-        msgId.setMinutes((int) ((result >>> 44) & 0x3f));
-        msgId.setSeconds((int) ((result >>> 38) & 0x3f));
-        msgId.setGateId((int) ((result >>> 16) & 0x3fffff));
-        msgId.setSequenceId((int) (result & 0xffff));
-        return msgId;
+        int month = (int) ((result >>> 60) & 0xf);
+        int day = (int) ((result >>> 55) & 0x1f);
+        int hour = (int) ((result >>> 50) & 0x1f);
+        int minutes = (int) ((result >>> 44) & 0x3f);
+        int seconds = (int) ((result >>> 38) & 0x3f);
+        int gateId = (int) ((result >>> 16) & 0x3fffff);
+        int sequenceId = (int) (result & 0xffff);
+        return new MsgId(month, day, hour, minutes, seconds, gateId, sequenceId);
     }
 }

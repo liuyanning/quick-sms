@@ -8,6 +8,8 @@ import com.drondea.sms.common.util.MsgId;
 import com.drondea.sms.common.util.SystemClock;
 import com.drondea.sms.type.GlobalConstants;
 
+import java.util.Calendar;
+
 /**
  * 状态报告子包
  * @author liuyanning
@@ -16,8 +18,8 @@ public class CmppReportRequestMessage {
 
     private MsgId msgId = new MsgId();
     private String stat = GlobalConstants.EMPTY_STRING;
-    private String submitTime = String.format("%ty%<tm%<td%<tH%<tM", SystemClock.now());
-    private String doneTime = String.format("%ty%<tm%<td%<tH%<tM", SystemClock.now());
+    private String submitTime = "2101010101";
+    private String doneTime = "2101010101";
     private String destterminalId = GlobalConstants.EMPTY_STRING;
     private long smscSequence = 0;
 

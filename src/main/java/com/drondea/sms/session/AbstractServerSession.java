@@ -89,6 +89,8 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
     private final ChannelHandlerContext ctx;
     private MessageProvider messageProvider;
     private boolean isPullMode;
+    //端口号
+    private int remotePort;
 
     /**
      * 创建session管理器
@@ -99,6 +101,8 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
         this.sessionManager = sessionManager;
         this.ctx = ctx;
         this.channel = ctx.channel();
+        InetSocketAddress socket = (InetSocketAddress) this.channel.remoteAddress();
+        this.remotePort = socket.getPort();
         this.sequenceNumber = new CommonSequenceNumber();
 
         if (configuration.isCountersEnabled() || GlobalConstants.METRICS_ON) {
@@ -495,7 +499,8 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
     }
 
 
-    public void failedLogin(IMessage msg, long status) {
+    public void failedLogin(UserChannelConfig channelConfig, IMessage msg, long status) {
+        setUserChannelConfig(channelConfig);
         ICustomHandler customHandler = sessionManager.getCustomHandler();
         if (customHandler == null) {
             return;
@@ -556,5 +561,13 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
         if (messageProvider != null) {
             messageProvider.responseMessageMatchFailed(requestKey, response);
         }
+    }
+
+    /**
+     * 获取客户端IP
+     * @return
+     */
+    public int getRemotePort() {
+        return this.remotePort;
     }
 }

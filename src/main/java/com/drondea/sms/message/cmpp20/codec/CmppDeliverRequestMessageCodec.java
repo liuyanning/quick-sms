@@ -47,23 +47,23 @@ public class CmppDeliverRequestMessageCodec implements ICodec {
             byte[] contentbytes = new byte[frameLength];
             bodyBuffer.readBytes(contentbytes);
             requestMessage.setMsgContentBytes(contentbytes);
-
         } else {
             int destTerminalIdLen = 60;
             if (frameLength != destTerminalIdLen) {
                 logger.warn("CmppDeliverRequestMessage - MsgContent length is {}. should be {}.", frameLength, destTerminalIdLen);
             }
-            requestMessage.setReportRequestMessage(new CmppReportRequestMessage());
-            requestMessage.getReportRequestMessage().setMsgId(DefaultMsgIdUtil.bytes2MsgId(toArray(bodyBuffer, 8)));
-            requestMessage.getReportRequestMessage().setStat(
+            CmppReportRequestMessage cmppReportRequestMessage = new CmppReportRequestMessage();
+            cmppReportRequestMessage.setMsgId(DefaultMsgIdUtil.bytes2MsgId(toArray(bodyBuffer, 8)));
+            cmppReportRequestMessage.setStat(
                     bodyBuffer.readCharSequence(7, CmppConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());
-            requestMessage.getReportRequestMessage().setSubmitTime(
+            cmppReportRequestMessage.setSubmitTime(
                     bodyBuffer.readCharSequence(10, CmppConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());
-            requestMessage.getReportRequestMessage().setDoneTime(
+            cmppReportRequestMessage.setDoneTime(
                     bodyBuffer.readCharSequence(10, CmppConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());
-            requestMessage.getReportRequestMessage().setDestterminalId(
+            cmppReportRequestMessage.setDestterminalId(
                     bodyBuffer.readCharSequence(21, CmppConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());
-            requestMessage.getReportRequestMessage().setSmscSequence(bodyBuffer.readUnsignedInt());
+            cmppReportRequestMessage.setSmscSequence(bodyBuffer.readUnsignedInt());
+            requestMessage.setReportRequestMessage(cmppReportRequestMessage);
         }
         //剩下的字节全部读取
         requestMessage.setReserved(bodyBuffer.readCharSequence(bodyBuffer.readableBytes(), CmppConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());

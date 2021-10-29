@@ -99,7 +99,7 @@ public class SmppServerSession extends AbstractServerSession {
             validResult = 14;
         }
 
-        failedLogin(msg, validResult);
+        failedLogin(userChannelConfig, msg, validResult);
         //登录失败
         sendLoginFailed(msg, validResult);
     }

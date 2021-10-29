@@ -120,8 +120,7 @@ public class CmppServerSession extends AbstractServerSession {
             //认证错误或者自定义校验错误
             validResult = 3;
         }
-
-        failedLogin(msg, validResult);
+        failedLogin(userChannelConfig, msg, validResult);
 
         //登录失败
         sendLoginFailed(msg, userChannelConfig, validResult, version);

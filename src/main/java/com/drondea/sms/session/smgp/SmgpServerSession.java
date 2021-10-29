@@ -105,7 +105,7 @@ public class SmgpServerSession extends AbstractServerSession {
             validResult = 21;
         }
 
-        failedLogin(msg, validResult);
+        failedLogin(userChannelConfig, msg, validResult);
         //登录失败
         sendLoginFailed(msg, userChannelConfig, validResult, version);
     }

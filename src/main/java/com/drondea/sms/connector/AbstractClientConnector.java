@@ -39,7 +39,7 @@ public abstract class AbstractClientConnector implements IConnector {
         this.sessionManager = connectorManager;
         this.clientBootstrap = new Bootstrap();
         clientBootstrap.group(workerGroup).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.SO_RCVBUF, 8192).option(ChannelOption.SO_SNDBUF, 8192)
+                .option(ChannelOption.SO_RCVBUF, 16384).option(ChannelOption.SO_SNDBUF, 8192)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(1024))
                 .handler(buildChannelInitializer());

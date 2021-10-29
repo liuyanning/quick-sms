@@ -59,9 +59,10 @@ public abstract class AbstractServerConnector implements IConnector {
          * 启动TCP_NODELAY，就意味着禁用了Nagle算法，允许小包的发送。对于延时敏感型，同时数据传输量比较小的应用，开启TCP_NODELAY选项无疑是一个正确的选择。
          */
         bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, 100).childOption(ChannelOption.SO_RCVBUF, 8192).childOption(ChannelOption.SO_SNDBUF, 8192)
+                .option(ChannelOption.SO_BACKLOG, 100).childOption(ChannelOption.SO_RCVBUF, 16384).childOption(ChannelOption.SO_SNDBUF, 8192)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT).childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(1024)).childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(1024))
+                .childOption(ChannelOption.TCP_NODELAY, true)
                 .handler(new LoggingHandler(LogLevel.INFO)).childHandler(buildChannelInitializer());
     }
 

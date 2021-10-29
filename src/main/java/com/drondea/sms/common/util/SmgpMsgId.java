@@ -8,10 +8,12 @@ import com.drondea.sms.common.SequenceNumber;
 import com.drondea.sms.type.GlobalConstants;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
+import java.util.Calendar;
 
 /**
  *
@@ -46,11 +48,12 @@ public class SmgpMsgId implements Serializable {
 	public SmgpMsgId(SequenceNumber sequenceNumber) {
 		int next = sequenceNumber.next();
 		int sequenceId = next % 1000000;
-		long timeMillis = SystemClock.now();
-		setMonth(Integer.parseInt(String.format("%tm", timeMillis)));
-		setDay(Integer.parseInt(String.format("%td", timeMillis)));
-		setHour(Integer.parseInt(String.format("%tH", timeMillis)));
-		setMinutes(Integer.parseInt(String.format("%tM", timeMillis)));
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(SystemClock.now());
+		setMonth(cal.get(Calendar.MONTH) + 1);
+		setDay(cal.get(Calendar.DAY_OF_MONTH));
+		setHour(cal.get(Calendar.HOUR_OF_DAY));
+		setMinutes(cal.get(Calendar.MINUTE));
 		setGateId(ProcessID);
 		setSequenceId(sequenceId);
 	}
@@ -66,7 +69,6 @@ public class SmgpMsgId implements Serializable {
 	 * @param timeMillis
 	 */
 	public SmgpMsgId(long timeMillis) {
-
 		this(timeMillis, ProcessID, GlobalConstants.smgpSequenceNumber.next());
 	}
 
@@ -90,12 +92,14 @@ public class SmgpMsgId implements Serializable {
 	 * @param sequenceId
 	 */
 	public SmgpMsgId(long timeMillis, int gateId, int sequenceId) {
-		setMonth(Integer.parseInt(String.format("%tm", timeMillis)));
-		setDay(Integer.parseInt(String.format("%td", timeMillis)));
-		setHour(Integer.parseInt(String.format("%tH", timeMillis)));
-		setMinutes(Integer.parseInt(String.format("%tM", timeMillis)));
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(SystemClock.now());
+		setMonth(cal.get(Calendar.MONTH) + 1);
+		setDay(cal.get(Calendar.DAY_OF_MONTH));
+		setHour(cal.get(Calendar.HOUR_OF_DAY));
+		setMinutes(cal.get(Calendar.MINUTE));
 		setGateId(gateId);
-		setSequenceId(sequenceId);
+		setSequenceId(sequenceId % 1000000);
 	}
 	/**
 	 * @return the month
@@ -169,18 +173,23 @@ public class SmgpMsgId implements Serializable {
 	public void setSequenceId(int sequenceId) {
 		this.sequenceId = sequenceId;
 	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-
 	public String toString() {
 		if(originarr!=null && originarr.length>0) {
 			return String.valueOf(Hex.encodeHex(originarr));
 		}else {
-			return String
-					.format("%1$06d%2$02d%3$02d%4$02d%5$02d%6$06d",
-							gateId,month, day, hour, minutes, sequenceId);
+			StringBuilder sb = new StringBuilder();
+			sb.append(StringUtils.leftPad(String.valueOf(gateId), 6,'0'))
+					.append(StringUtils.leftPad(String.valueOf(month), 2,'0'))
+					.append(StringUtils.leftPad(String.valueOf(day), 2,'0'))
+					.append(StringUtils.leftPad(String.valueOf(hour), 2,'0'))
+					.append(StringUtils.leftPad(String.valueOf(minutes), 2,'0'))
+					.append(StringUtils.leftPad(String.valueOf(sequenceId), 6,'0'));
+			return sb.toString();
 		}
 
 	}
@@ -243,5 +252,4 @@ public class SmgpMsgId implements Serializable {
 		}
 		return true;
 	}
-	
 }

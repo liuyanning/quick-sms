@@ -24,7 +24,6 @@ public final class SmgpMsgIdUtil {
 
     }
 
-
     public static SmgpMsgId bytes2SmgpMsgId(byte[] bytes) {
 
         assert (bytes.length == 10);
@@ -36,4 +35,5 @@ public final class SmgpMsgIdUtil {
             return new SmgpMsgId(bytes);
         }
     }
+
 }
