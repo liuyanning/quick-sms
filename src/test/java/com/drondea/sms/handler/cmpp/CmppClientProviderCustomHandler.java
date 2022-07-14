@@ -86,7 +86,7 @@ public class CmppClientProviderCustomHandler extends ICustomHandler {
                 }
             });
 
-            messageProvider.addMessage(requestMessage);
+            messageProvider.sendMessage(requestMessage);
             i ++;
         }
     }
