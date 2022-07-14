@@ -196,4 +196,9 @@ public abstract class AbstractCmppMessage implements IMessage, Cloneable {
     public void setMessageResponseHandler(IMessageResponseHandler messageResponseHandler) {
         this.messageResponseHandler = messageResponseHandler;
     }
+
+    @Override
+    public boolean isActiveTestMessage() {
+        return false;
+    }
 }

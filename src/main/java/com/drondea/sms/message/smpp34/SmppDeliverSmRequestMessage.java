@@ -291,32 +291,6 @@ public class SmppDeliverSmRequestMessage extends AbstractSmppMessage implements 
     }
 
     @Override
-    public String toString() {
-        return "SmppDeliverSmRequestMessage{" +
-                "header=" + this.getHeader().toString() +
-                "serviceType='" + serviceType + '\'' +
-                ", sourceAddrTon=" + sourceAddrTon +
-                ", sourceAddrNpi=" + sourceAddrNpi +
-                ", sourceAddr='" + sourceAddr + '\'' +
-                ", destAddrTon=" + destAddrTon +
-                ", destAddrNpi=" + destAddrNpi +
-                ", destinationAddr='" + destinationAddr + '\'' +
-                ", esmClass=" + esmClass +
-                ", protocolId=" + protocolId +
-                ", priorityFlag=" + priorityFlag +
-                ", scheduleDeliveryTime='" + scheduleDeliveryTime + '\'' +
-                ", validityPeriod='" + validityPeriod + '\'' +
-                ", registeredDelivery=" + registeredDelivery +
-                ", replaceIfPresentFlag=" + replaceIfPresentFlag +
-                ", dataCoding=" + dataCoding +
-                ", smDefaultMsgIid=" + smDefaultMsgIid +
-                ", smLength=" + smLength +
-                ", shortMessage=" + Arrays.toString(shortMessage) +
-//                ", OptionalParameters=" + getOptionalParameters()==null?"":getOptionalParameters().toString() +
-                '}';
-    }
-
-    @Override
     public LongMessageSlice generateSlice() {
         LongMessageSlice slice = new LongMessageSlice();
         slice.setTpPid(getProtocolId());
@@ -440,5 +414,36 @@ public class SmppDeliverSmRequestMessage extends AbstractSmppMessage implements 
     @Override
     public String getBatchNumber() {
         return this.batchNumber;
+    }
+
+    @Override
+    public boolean isFixedSignature() {
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "SmppDeliverSmRequestMessage{" +
+                "header=" + this.getHeader().toString() +
+                ", serviceType='" + serviceType + '\'' +
+                ", sourceAddrTon=" + sourceAddrTon +
+                ", sourceAddrNpi=" + sourceAddrNpi +
+                ", sourceAddr='" + sourceAddr + '\'' +
+                ", destAddrTon=" + destAddrTon +
+                ", destAddrNpi=" + destAddrNpi +
+                ", destinationAddr='" + destinationAddr + '\'' +
+                ", esmClass=" + esmClass +
+                ", protocolId=" + protocolId +
+                ", priorityFlag=" + priorityFlag +
+                ", scheduleDeliveryTime='" + scheduleDeliveryTime + '\'' +
+                ", validityPeriod='" + validityPeriod + '\'' +
+                ", registeredDelivery=" + registeredDelivery +
+                ", replaceIfPresentFlag=" + replaceIfPresentFlag +
+                ", dataCoding=" + dataCoding +
+                ", smDefaultMsgIid=" + smDefaultMsgIid +
+                ", smLength=" + smLength +
+                ", shortMessage=" + getMsgContent() +
+//                ", OptionalParameters=" + getOptionalParameters()==null?"":getOptionalParameters().toString() +
+                '}';
     }
 }

@@ -5,13 +5,8 @@ package com.drondea.sms.common.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Date;
 
 /**
  * @author liyuehai
@@ -19,7 +14,6 @@ import java.util.Date;
  */
 public class SgipSequenceNumber implements Serializable {
     private static final long serialVersionUID = -1834423004053157092L;
-    private static final String[] datePattern = new String[]{"yyyyMMddHHmmss"};
     private long nodeId;
     private int timestamp;
     private int sequenceId;
@@ -31,7 +25,9 @@ public class SgipSequenceNumber implements Serializable {
     public SgipSequenceNumber(String sgipSequenceNumber) {
         this.nodeId = Long.parseLong(sgipSequenceNumber.substring(0, 10));
         this.timestamp = Integer.parseInt(sgipSequenceNumber.substring(10, 20));
-        this.sequenceId = Integer.parseInt(sgipSequenceNumber.substring(20, 31));
+        String sequenceIdStr = sgipSequenceNumber.substring(20, 31);
+        Long sequenceIdLong = Long.parseLong(sequenceIdStr);
+        this.sequenceId = sequenceIdLong.intValue();
     }
     /**
      *
@@ -111,8 +107,11 @@ public class SgipSequenceNumber implements Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append(StringUtils.leftPad(String.valueOf(nodeId), 10,'0'))
                 .append(StringUtils.leftPad(String.valueOf(timestamp), 10,'0'))
-                .append(StringUtils.leftPad(String.valueOf(sequenceId), 11,'0'));
+                .append(StringUtils.leftPad(String.valueOf(getLongSequenceId()), 11,'0'));
         return sb.toString();
     }
 
+    private long getLongSequenceId() {
+        return sequenceId & 0xFFFFFFFFL;
+    }
 }

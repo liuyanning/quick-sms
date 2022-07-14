@@ -2,6 +2,7 @@ package com.drondea.sms.handler.sgip;
 
 import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.SequenceNumber;
+import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.common.util.SgipSequenceNumber;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.sgip12.SgipDeliverRequestMessage;
@@ -20,6 +21,7 @@ import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
@@ -104,8 +106,10 @@ public class SgipClientDeliverCustomHandler extends ICustomHandler {
 //                        e.printStackTrace();
 //                    }
 //                }
-                executor.submit(() -> {
-                    channelSession.sendMessage(requestMessage);
+                //切分长短信
+                List<IMessage> longMsgSlices = CommonUtil.getLongMsgSlices(requestMessage, channelSession.getConfiguration(), sequenceNumber);
+                longMsgSlices.forEach(msg -> {
+                    channelSession.sendMessage(msg);
                 });
                 //                channel.writeAndFlush(requestMessage);
                 i++;

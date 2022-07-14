@@ -71,10 +71,10 @@ public class CmppSubmitRequestMessage extends AbstractCmppMessage implements ILo
      */
     private String reserve = GlobalConstants.EMPTY_STRING;
 
-
     private SmsMessage msg;
     private String signature;
     private String batchNumber;
+    private boolean isFixedSignature;
 
     public CmppSubmitRequestMessage() {
         super(CmppPackageType.SUBMITREQUEST);
@@ -121,6 +121,11 @@ public class CmppSubmitRequestMessage extends AbstractCmppMessage implements ILo
     @Override
     public short getPkNumber() {
         return pkNumber;
+    }
+
+    @Override
+    public boolean isFixedSignature() {
+        return isFixedSignature;
     }
 
     @Override
@@ -444,12 +449,17 @@ public class CmppSubmitRequestMessage extends AbstractCmppMessage implements ILo
         return this.batchNumber;
     }
 
+    public void setFixedSignature(boolean fixedSignature) {
+        isFixedSignature = fixedSignature;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("CmppSubmitRequestMessage [msgId=").append(msgId).append(", serviceId=").append(serviceId).append(", srcId=").append(srcId)
+                .append(", feeTerminalId=").append(feeTerminalId).append(", feeUserType=").append(feeUserType)
                 .append(", msgSrc=").append(msgSrc).append(", destTerminalId=").append(Arrays.toString(destTerminalId)).append(", msgContent=")
-                .append(getMsgContent()).append(", sequenceId=").append(getHeader().getSequenceId()).append(",msgFmt=").append(getMsgFmt().getValue()).append("]");
+                .append(getMsgContent()).append(", sequenceId=").append(getHeader().getSequenceId()).append(", msgFmt=").append(getMsgFmt().getValue()).append("]");
         return sb.toString();
     }
 }

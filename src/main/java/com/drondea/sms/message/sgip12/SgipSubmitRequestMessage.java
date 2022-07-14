@@ -52,6 +52,7 @@ public class SgipSubmitRequestMessage extends AbstractSgipMessage implements ILo
     private short pkTotal = 1;
     private short pkNumber = 1;
     private String batchNumber;
+    private boolean isFixedSignature;
 
     public SgipSubmitRequestMessage() {
         super(SgipPackageType.SUBMITREQUEST);
@@ -410,10 +411,24 @@ public class SgipSubmitRequestMessage extends AbstractSgipMessage implements ILo
     }
 
     @Override
+    public boolean isFixedSignature() {
+        return isFixedSignature;
+    }
+
+    public void setFixedSignature(boolean fixedSignature) {
+        isFixedSignature = fixedSignature;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("SgipSubmitRequestMessage [corpId=").append(corpId)
                 .append(", spNumber=").append(spNumber)
+                .append(", chargeNumber=").append(chargeNumber)
+                .append(", corpId=").append(corpId)
+                .append(", serviceType=").append(serviceType)
+                .append(", feeType=").append(feeType)
+                .append(", feeValue=").append(feeValue)
                 .append(", userNumber=").append(Arrays.toString(userNumber))
                 .append(", MessageContent=").append(getMsgContent())
                 .append(", Header=").append(getHeader().toString()).append("]");

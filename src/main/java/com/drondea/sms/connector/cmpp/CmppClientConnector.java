@@ -59,8 +59,8 @@ public class CmppClientConnector extends AbstractClientConnector {
         } else {
             pipeline.addLast("CmppMessageCodec", Cmpp30MessageCodec.getInstance());
         }
-
-
+        //记录日志
+        pipeline.addLast("MessageLogHandler", GlobalConstants.MESSAGE_LOG_HANDLER);
         //session管理
         pipeline.addLast("SessionHandler", new SessionHandler(getSessionManager()));
     }

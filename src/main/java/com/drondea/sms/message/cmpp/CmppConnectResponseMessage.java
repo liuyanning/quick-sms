@@ -67,6 +67,8 @@ public class CmppConnectResponseMessage extends AbstractCmppMessage {
     }
     @Override
     public String toString() {
-        return String.format("CmppConnectResponseMessage [version=%s, status=%s,authenticatorISMG = %s, sequenceId=%s]", version, status, Hex.encodeHexString(authenticatorISMG), getHeader().getSequenceId());
+        return "CmppConnectResponseMessage [version="+ version +
+                ",status="+ status +",authenticatorISMG= "+ status +
+                ",sequenceId= "+ getHeader().getSequenceId() +"]";
     }
 }

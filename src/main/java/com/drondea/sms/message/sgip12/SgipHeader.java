@@ -99,8 +99,8 @@ public class SgipHeader implements IHeader, Cloneable, Serializable {
     }
     @Override
     public String toString() {
-        return "SgipHeader [commandId=" + commandId
-                + ", sequenceNumber=" + sequenceNumber.toString() + "]";
+        return "[commandId=" + commandId
+                + ",sequenceNumber=" + sequenceNumber.toString() + "]";
     }
 
 }

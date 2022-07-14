@@ -15,6 +15,9 @@ public final class SmgpMsgIdUtil {
     public static byte[] msgId2Bytes(SmgpMsgId msgId) {
 
         byte[] bytes;
+        if (msgId == null) {
+            return new byte[10];
+        }
         try {
             bytes = Hex.decodeHex(msgId.toString().toCharArray());
         } catch (DecoderException e) {

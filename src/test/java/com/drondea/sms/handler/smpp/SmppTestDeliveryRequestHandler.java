@@ -1,5 +1,8 @@
 package com.drondea.sms.handler.smpp;
 
+import com.drondea.sms.channel.ChannelSession;
+import com.drondea.sms.common.SequenceNumber;
+import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.handler.cmpp.ServerCmppSubmitRequestHandler;
 import com.drondea.sms.message.smpp34.SmppDeliverSmRequestMessage;
 import com.drondea.sms.message.smpp34.SmppDeliverSmResponseMessage;
@@ -40,12 +43,10 @@ public class SmppTestDeliveryRequestHandler extends SimpleChannelInboundHandler<
                 logger.debug("组装未完成，短信内容：{}", msg.getMsgContent());
             }
         }
-
+        ChannelSession channelSession = CommonUtil.getChannelSession(ctx.channel());
         //发送响应
         SmppDeliverSmResponseMessage deliverResponseMessage = new SmppDeliverSmResponseMessage(msg.getHeader());
         deliverResponseMessage.getHeader().setCommandStatus(SmppConstants.STATUS_OK);
-        ctx.channel().writeAndFlush(deliverResponseMessage);
-
-//      ctx.channel().writeAndFlush(msg);
+        channelSession.sendMessage(deliverResponseMessage);
     }
 }

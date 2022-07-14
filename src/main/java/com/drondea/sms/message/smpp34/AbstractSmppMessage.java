@@ -313,4 +313,8 @@ public abstract class AbstractSmppMessage implements IMessage, Cloneable {
         return sendTimestamp;
     }
 
+    @Override
+    public boolean isActiveTestMessage() {
+        return false;
+    }
 }

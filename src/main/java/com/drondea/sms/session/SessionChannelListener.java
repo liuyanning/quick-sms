@@ -37,24 +37,6 @@ public interface SessionChannelListener {
      */
     void fireChannelClosed();
 
-    /**
-     * 写消息事件处理
-     *
-     * @param ctx
-     * @param msg
-     * @param promise
-     * @return
-     */
-    boolean fireWrite(ChannelHandlerContext ctx, IMessage msg, ChannelPromise promise);
-
-
-    /**
-     * channel的可写状态发生改变时触发
-     *
-     * @param writable
-     */
-    void fireWritabilityChanged(boolean writable);
-
 
     /**
      * 设置session的监听器

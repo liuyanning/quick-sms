@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -31,13 +33,34 @@ public class SmgpMsgId implements Serializable {
 	private byte[] originarr;
 
 	static{
-		String vmName = ManagementFactory.getRuntimeMXBean().getName();
-		if(vmName.contains("@")){
-			try{
-				ProcessID = Integer.parseInt(vmName.split("@")[0]);
-			}catch(Exception e){
-
+		final String propertiesName = "quicksms.smgpid";
+		String value = null;
+		//解决在docker中运行，进程号都一样的问题
+		try {
+			if (System.getSecurityManager() == null) {
+				value = System.getProperty(propertiesName);
+			} else {
+				value = AccessController.doPrivileged(new PrivilegedAction<String>() {
+					@Override
+					public String run() {
+						return System.getProperty(propertiesName);
+					}
+				});
 			}
+		} catch (SecurityException e) {
+		}
+		//没有配置gateid就取程序进程号
+		if(StringUtils.isBlank(value)) {
+			String vmName = ManagementFactory.getRuntimeMXBean().getName();
+			if(vmName.contains("@")){
+				value =vmName.split("@")[0];
+			}
+		}
+
+		try{
+			ProcessID = Integer.valueOf(value);
+		}catch(Exception e){
+
 		}
 	}
 

@@ -34,9 +34,9 @@ public class CmppClientPullModeTest {
         String host = "127.0.0.1";
         //滑动窗口建议值为16
         CmppClientSocketConfig socketConfig = new CmppClientSocketConfig("test",
-                10 * 1000, 16, host, 7891);
+                10 * 1000, 16, host, 7892);
         socketConfig.setChannelSize(1);
-        socketConfig.setUserName("100506");
+        socketConfig.setUserName("100001");
         socketConfig.setPassword("123123");
         socketConfig.setVersion(CmppConstants.VERSION_20);
         //限速 条/s
@@ -58,7 +58,7 @@ public class CmppClientPullModeTest {
             @Override
             public List<IMessage> getTcpMessages(ChannelSession channelSession) {
                 int i = sum.incrementAndGet();
-                if (i > 5) {
+                if (i > 1) {
                     return null;
                 }
                 CmppSubmitRequestMessage requestMessage = new CmppSubmitRequestMessage();
@@ -71,7 +71,7 @@ public class CmppClientPullModeTest {
                 requestMessage.setSrcId("" + (int) (Math.random() * 1000));
                 requestMessage.setRegisteredDelivery((short) 1);
                 requestMessage.setDestUsrTl((short) 1);
-                requestMessage.setDestTerminalId(new String[]{"17303110626"});
+                requestMessage.setDestTerminalId(new String[]{"18010181663"});
                 requestMessage.setSignature("【庄点科技】");
                 //收到响应的回调
                 requestMessage.setMessageResponseHandler(new IMessageResponseHandler() {

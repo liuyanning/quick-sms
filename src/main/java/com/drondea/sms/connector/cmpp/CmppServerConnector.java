@@ -49,10 +49,8 @@ public class CmppServerConnector extends AbstractServerConnector {
         CmppServerSocketConfig socketConfig = (CmppServerSocketConfig) (getSessionManager().getSocketConfig());
         //日志处理
         pipeline.addLast("LoggingHandler", new LoggingHandler(String.format(GlobalConstants.BYTE_LOG_PREFIX, socketConfig.getId()), LogLevel.DEBUG));
-
         //粘包处理,CMPP的
         pipeline.addLast("FrameDecoder", new LengthFieldBasedFrameDecoder(4 * 1024, 0, 4, -4, 0, true));
-
         //打包、解包
         short version = socketConfig.getVersion();
         if (version < CmppConstants.VERSION_30) {
@@ -61,7 +59,8 @@ public class CmppServerConnector extends AbstractServerConnector {
         } else {
             pipeline.addLast("CmppMessageCodec", Cmpp30MessageCodec.getInstance());
         }
-
+        //记录日志
+        pipeline.addLast("MessageLogHandler", GlobalConstants.MESSAGE_LOG_HANDLER);
         //session管理
         pipeline.addLast("SessionHandler", new SessionHandler(getSessionManager()));
     }

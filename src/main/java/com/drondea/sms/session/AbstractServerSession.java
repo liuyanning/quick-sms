@@ -63,23 +63,6 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
      */
     private Window<Integer, ChannelWindowMessage, IMessage> slidingWindow;
 
-    private AtomicInteger qpsWaitingSize;
-
-    /**
-     * session的可读标识volatile保证多线程的可见性,0为可写，1为不可写
-     */
-    private volatile int unwritable;
-
-    private static final AtomicIntegerFieldUpdater<AbstractServerSession> UNWRITABLE_UPDATER =
-            AtomicIntegerFieldUpdater.newUpdater(AbstractServerSession.class, "unwritable");
-
-    @Override
-    public int getWaitSize() {
-        return slidingWindow.getBlockingMessageSize();
-    }
-
-    private int windowLimitSize = 50;
-
     /**
      * session事件处理器
      */
@@ -88,7 +71,6 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
     private final LinkedBlockingQueue<IMessage> cacheMsg = new LinkedBlockingQueue();
     private final ChannelHandlerContext ctx;
     private MessageProvider messageProvider;
-    private boolean isPullMode;
     //端口号
     private int remotePort;
 
@@ -112,6 +94,11 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
     }
 
     @Override
+    public ChannelHandlerContext getChannelHandlerContext() {
+        return this.ctx;
+    }
+
+    @Override
     public void fireChannelActive() {
         logger.debug("server channel active");
         setState(STATE_ACTIVE);
@@ -126,35 +113,25 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
 
     @Override
     public ChannelFuture sendMessage(IMessage message) {
-        //不可写状态直接返回,并且重试
-        if (!this.channel.isWritable()) {
-            logger.debug("当前channel不可写,重试");
-            if (!this.channel.isActive()) {
-                logger.info("当前channel不可写,已关闭");
-                return null;
-            }
-            ScheduledExecutorService scheduleExecutor = DefaultEventGroupFactory.getInstance().getScheduleExecutor();
-            scheduleExecutor.schedule(() -> {
-                sendMessage(message);
-            }, 1000, TimeUnit.MICROSECONDS);
-            return null;
+        //窗口消息缓存
+        if (message.isWindowSendMessage()) {
+            cacheMsg.offer(message);
+            return ctx.newPromise().setSuccess();
         }
+        //非窗口直接暴力干
+        return ctx.writeAndFlush(message);
+    }
 
-        ChannelFuture channelFuture = this.channel.write(message);
-        //滑动窗口不需要flush
-        if (message.isWindowSendMessage() && this.getSlidingWindow() != null) {
-            return channelFuture;
-        }
-//        //限速消息也不要flush
-//        if (this.userChannelConfig != null && this.userChannelConfig.getQpsLimit() > 0 && message.isWindowSendMessage()) {
-//            return channelFuture;
-//        }
-
-        this.channel.flush();
-        return channelFuture;
+    @Override
+    public int getMessageCacheSize(IMessage message) {
+        return cacheMsg.size();
     }
 
     public void doAfterLogin(UserChannelConfig channelConfig) {
+        doAfterLogin(channelConfig, true);
+    }
+
+    public void doAfterLogin(UserChannelConfig channelConfig, boolean sendDeliver) {
         this.userChannelConfig = channelConfig;
         int windowSize = channelConfig.getWindowSize();
         if (windowSize > 0 && channelConfig.getWindowMonitorInterval() > 0) {
@@ -163,12 +140,8 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
             this.slidingWindow = new Window<>(windowSize, monitorExecutor,
                     channelConfig.getWindowMonitorInterval(), this, monitorThreadName);
         }
-        if (userChannelConfig.getQpsLimit() > 0) {
-            this.qpsWaitingSize = new AtomicInteger();
-        }
 
-        if (sessionManager.getMessageProvider() != null && this.slidingWindow != null) {
-            this.isPullMode = true;
+        if (sendDeliver && this.slidingWindow != null) {
             this.messageProvider = sessionManager.getMessageProvider();
             //延时1秒，开始拉取消息
             delayPullWindowMsg(1000);
@@ -191,7 +164,6 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
 
         //滑动窗口消息处理
         completeWindowMsg(message, slidingWindow);
-
     }
 
     @Override
@@ -201,27 +173,6 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
             customHandler.channelClosed(this);
         }
         this.channel.close();
-    }
-
-    @Override
-    public boolean fireWrite(ChannelHandlerContext ctx, IMessage msg, ChannelPromise promise) {
-        if (getCounters() != null) {
-            countRXMessage(msg);
-        }
-        //不是窗口和限速消息类型
-        if (!msg.isWindowSendMessage()) {
-            ctx.write(msg, promise);
-            return true;
-        }
-
-        //不需要流量控制,只需要滑动窗口
-        if (this.slidingWindow != null) {
-            this.sendWindowMessage(ctx, msg, promise);
-            return true;
-        }
-        //不需要流量控制和滑动窗口
-        ctx.write(msg, promise);
-        return true;
     }
 
     @Override
@@ -269,34 +220,6 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
         }
 
         delayPullWindowMsg(delay);
-    }
-
-
-    @Override
-    public void fireWritabilityChanged(boolean writable) {
-        if (writable && qpsWaitingSize != null && qpsWaitingSize.get() > windowLimitSize / 2) {
-            return;
-        }
-        if (writable) {
-            setWritable();
-        } else {
-            setUnwritable();
-        }
-    }
-
-    private void setWritable() {
-        setUserDefinedWritability(true);
-    }
-
-    private void setUnwritable() {
-        setUserDefinedWritability(false);
-    }
-
-    private void setUserDefinedWritability(boolean writable) {
-        ChannelOutboundBuffer cob = this.channel.unsafe().outboundBuffer();
-        if (cob != null) {
-            cob.setUserDefinedWritability(31, writable);
-        }
     }
 
     @Override
@@ -396,34 +319,13 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
     }
 
     @Override
-    protected void changeWritable(Window<Integer, ChannelWindowMessage, IMessage> slidingWindow) {
-        if (this.isPullMode) {
-            return;
-        }
-        int bolocingMessageSize = slidingWindow.getBlockingMessageSize();
-        if (bolocingMessageSize < windowLimitSize/2) {
-            logger.debug("滑动窗口触发可写状态改变：等待数{},{}", bolocingMessageSize, true);
-            fireWritabilityChanged(true);
-        }
-
-    }
-
-    @Override
     public void sendWindowMessage(ChannelHandlerContext ctx, IMessage message, ChannelPromise promise) {
 
         try {
-
             ChannelWindowMessage windowMessage = new ChannelWindowMessage(ctx, message, promise);
             //会占用线程等待超时，所以时间设置多少要综合考虑
             WindowFuture offer = slidingWindow.offer(message.getSequenceId(), windowMessage, 20000,
                     userChannelConfig.getRequestExpiryTimeout());
-            if (!this.isPullMode) {
-                int bolocingMessageSize = slidingWindow.getBlockingMessageSize();
-                if (bolocingMessageSize > windowLimitSize) {
-                    logger.debug("滑动窗口触发可写状态改变：等待数{},{}", bolocingMessageSize, false);
-                    fireWritabilityChanged(false);
-                }
-            }
 
             if (offer != null) {
                 //打印当前等待获取slot的key
@@ -446,7 +348,7 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
             }
 
             //拉取模式的计数方法
-            if (configuration.isCountersEnabled() && this.isPullMode) {
+            if (configuration.isCountersEnabled()) {
                 //计数
                 countTXMessage(message);
             }

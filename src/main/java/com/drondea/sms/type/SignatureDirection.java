@@ -15,9 +15,13 @@ public enum SignatureDirection {
      */
     CUSTOM,
     /**
-     * 通道侧
+     * 通道侧（固签）
      */
-    CHANNEL_FIXED;
+    CHANNEL_FIXED,
+    /**
+     * 混合（既有自定义也有固签）
+     */
+    MIXED;
 
     private String value;
 

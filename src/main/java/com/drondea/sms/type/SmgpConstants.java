@@ -7,7 +7,7 @@ import com.drondea.sms.handler.smgp.SmgpDeliverLongMessageHandler;
 import com.drondea.sms.handler.smgp.SmgpIdleStateHandler;
 import com.drondea.sms.handler.smgp.SmgpServerSessionFilterHandler;
 import com.drondea.sms.handler.smgp.SmgpSubmitLongMessageHandler;
-import com.drondea.sms.handler.smgp.SmgpTerminateRequestMessageHandler;
+import com.drondea.sms.handler.smgp.SmgpExitRequestMessageHandler;
 import com.drondea.sms.handler.smgp.SmgpTerminateResponseMessageHandler;
 import com.drondea.sms.handler.smgp.SmgpUserEventHandler;
 
@@ -59,7 +59,7 @@ public class SmgpConstants {
     public final static SmgpActiveTestRequestMessageHandler ACTIVE_TEST_REQUEST_HANDLER = new SmgpActiveTestRequestMessageHandler();
     public final static SmgpActiveTestResponseMessageHandler ACTIVE_TEST_RESPONSE_HANDLER = new SmgpActiveTestResponseMessageHandler();
     public final static SmgpServerSessionFilterHandler SERVER_SESSION_FILTER_HANDLER = new SmgpServerSessionFilterHandler();
-    public final static SmgpTerminateRequestMessageHandler TERMINATE_REQUEST_MESSAGE_HANDLER = new SmgpTerminateRequestMessageHandler();
+    public final static SmgpExitRequestMessageHandler EXIT_REQUEST_MESSAGE_HANDLER = new SmgpExitRequestMessageHandler();
     public final static SmgpTerminateResponseMessageHandler TERMINATE_RESPONSE_MESSAGE_HANDLER = new SmgpTerminateResponseMessageHandler();
     public final static SmgpSubmitLongMessageHandler SUBMIT_LONG_MESSAGE_HANDLER = new SmgpSubmitLongMessageHandler();
     public final static SmgpDeliverLongMessageHandler DELIVER_LONG_MESSAGE_HANDLER = new SmgpDeliverLongMessageHandler();

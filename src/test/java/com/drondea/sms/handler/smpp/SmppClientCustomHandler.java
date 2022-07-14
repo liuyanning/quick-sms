@@ -2,6 +2,7 @@ package com.drondea.sms.handler.smpp;
 
 import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.SequenceNumber;
+import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.smpp34.SmppSubmitSmRequestMessage;
 import com.drondea.sms.type.ICustomHandler;
@@ -17,6 +18,7 @@ import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
@@ -51,10 +53,8 @@ public class SmppClientCustomHandler extends ICustomHandler {
                 SequenceNumber sequenceNumber = channelSession.getSequenceNumber();
                 requestMessage.getHeader().setSequenceNumber(sequenceNumber.next());
 //                String message = "AAA";
-                String message = "test message:test message:test message:test message:" +
-                        "test message:test message:test message:test message:test message:test mes" +
-                        "sage:test message:test message:test message:test message:test message:" + Math.random();
-                requestMessage.setMsgContent(message, (short) 0);
+                String message = "à échéance.Consultez votre solde et réclamez votre formation 100% gratuite sur https://form.jotform.com/210252607499458";
+                requestMessage.setMsgContent(message, (short) 3);
 
                 requestMessage.setSourceAddrNpi((short) 1);
                 requestMessage.setSourceAddrTon((short) 1);
@@ -62,7 +62,7 @@ public class SmppClientCustomHandler extends ICustomHandler {
 //                requestMessage.setDestinationAddr("44951361920"+(int)(Math.random() * 1000));
                 requestMessage.setDestAddrNpi((short) 1);
                 requestMessage.setDestAddrTon((short) 1);
-                requestMessage.setDestinationAddr("8617303110626");
+                requestMessage.setDestinationAddr("33615445421");
                 requestMessage.setProtocolId((short) 0);
                 requestMessage.setPriorityFlag((byte) 0x00);
                 requestMessage.setScheduleDeliveryTime(null);
@@ -91,8 +91,10 @@ public class SmppClientCustomHandler extends ICustomHandler {
                     }
                 });
 
-                executor.submit(() -> {
-                    channelSession.sendMessage(requestMessage);
+                //切分长短信
+                List<IMessage> longMsgSlices = CommonUtil.getLongMsgSlices(requestMessage, channelSession.getConfiguration(), sequenceNumber);
+                longMsgSlices.forEach(msg -> {
+                    channelSession.sendMessage(msg);
                 });
                 //                channel.writeAndFlush(requestMessage);
                 i++;

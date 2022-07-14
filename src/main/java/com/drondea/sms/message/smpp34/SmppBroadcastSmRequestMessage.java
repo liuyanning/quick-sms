@@ -143,7 +143,7 @@ public class SmppBroadcastSmRequestMessage extends AbstractSmppMessage {
     @Override
     public String toString() {
         return "SmppBroadcastSmRequestMessage{" +
-                "serviceType='" + serviceType + '\'' +
+                ", serviceType='" + serviceType + '\'' +
                 ", sourceAddrTon=" + sourceAddrTon +
                 ", sourceAddrNpi=" + sourceAddrNpi +
                 ", sourceAddr='" + sourceAddr + '\'' +

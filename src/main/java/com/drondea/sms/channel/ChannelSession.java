@@ -186,12 +186,20 @@ public abstract class ChannelSession implements SessionChannelListener {
     public abstract void countRXMessage(IMessage message);
 
     /**
-     * 发送数据
-     *
+     * 发送数据，只是写入到缓存中，等待发送
+     * 请注意控制放入缓存数据的数量，避免内存溢出
+     * 长短信要注意使用CommonUtil.getLongMsgSlices分割再循环发送
      * @param message
      * @return
      */
     public abstract ChannelFuture sendMessage(IMessage message);
+
+    /**
+     * 获取放入缓存中的数据量
+     * @param message
+     * @return
+     */
+    public abstract int getMessageCacheSize(IMessage message);
 
 //    /**
 //     * 使用滑动窗口发送消息
@@ -242,12 +250,6 @@ public abstract class ChannelSession implements SessionChannelListener {
      * @return
      */
     public abstract boolean isWritable();
-
-    /**
-     * 获取限速等待数量
-     * @return
-     */
-    public abstract int getWaitSize();
 
     /**
      * 登陆成功后调用
@@ -387,8 +389,6 @@ public abstract class ChannelSession implements SessionChannelListener {
     public abstract void reSendMessage(ChannelHandlerContext ctx, IMessage message, ChannelPromise promise);
 
     protected void sendWaitingMessage(Window<Integer, ChannelWindowMessage, IMessage> slidingWindow) {
-        //改写可写标识
-        changeWritable(slidingWindow);
         WaitingMessage<Integer, ChannelWindowMessage> blockingMessage = slidingWindow.pollBlockingMessage();
         if (blockingMessage == null) {
             return;
@@ -398,8 +398,6 @@ public abstract class ChannelSession implements SessionChannelListener {
             sendWindowMessage(channelWindowMessage.getCtx(), channelWindowMessage.getMessage(), channelWindowMessage.getPromise());
         }
     }
-
-    protected abstract void changeWritable(Window<Integer, ChannelWindowMessage, IMessage> slidingWindow);
 
     public void expiredMessage(WindowFuture<Integer, ChannelWindowMessage, IMessage> future, Window<Integer, ChannelWindowMessage, IMessage> slidingWindow) {
 
@@ -471,5 +469,15 @@ public abstract class ChannelSession implements SessionChannelListener {
      */
     protected abstract String getDelayCachedKey(IMessage message);
 
+    /**
+     * 重置窗口大小
+     * @param windowSize
+     */
     public abstract void resetWindowSize(int windowSize);
+
+    /**
+     * 获取上下文
+     * @return
+     */
+    public abstract ChannelHandlerContext getChannelHandlerContext();
 }

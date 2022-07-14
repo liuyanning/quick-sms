@@ -55,9 +55,9 @@ public class SgipServerSession extends AbstractServerSession {
         String userName = msg.getLoginName();
         AbstractServerSessionManager sessionManager = (AbstractServerSessionManager) getSessionManager();
         UserChannelConfig userChannelConfig = sessionManager.getUserChannelConfig(userName);
-        if (userChannelConfig == null || !validIpAddress(userChannelConfig, getChannel())) {
+        if (userChannelConfig == null) {
             //登录失败
-            sendLoginFailed(msg, userChannelConfig, 2);
+            sendLoginFailed(msg, null, 6);
             return;
         }
         setUserName(userChannelConfig.getUserName());
@@ -68,18 +68,18 @@ public class SgipServerSession extends AbstractServerSession {
         }
 
         int validResult = validClientMsg(msg.getLoginPassowrd(), userChannelConfig);
-
+        boolean isValidIp = validIpAddress(userChannelConfig, getChannel());
         logger.debug("登录结果 {}, {}", validResult, customValidResult);
         //验证成功
-        if (customValidResult && validResult == 0) {
+        if (customValidResult && validResult == 0 && isValidIp) {
             //添加session说明超过最大的连接限制数
             boolean addResult = sessionManager.addUserSession(userChannelConfig, this);
             if (addResult) {
                 setState(STATE_LOGIN_SUCCESS);
                 sendLoginSuccess(msg, userChannelConfig);
 
-                //登录成功后的处理
-                doAfterLogin(userChannelConfig);
+                //登录成功后的处理，不开启拉取消息的定时，（SGIP的Server只负责收消息）
+                doAfterLogin(userChannelConfig, false);
 
                 //增加业务处理
                 addBIZHandler();
@@ -92,7 +92,10 @@ public class SgipServerSession extends AbstractServerSession {
         } else {
             validResult = 3;
         }
-
+        //IP不合法错误码4
+        if (!isValidIp) {
+            validResult = 2;
+        }
         failedLogin(userChannelConfig, msg, validResult);
         //登录失败
         sendLoginFailed(msg, userChannelConfig, validResult);

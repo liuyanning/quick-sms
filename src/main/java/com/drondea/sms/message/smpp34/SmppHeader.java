@@ -88,7 +88,7 @@ public class SmppHeader implements IHeader, Cloneable, Serializable {
 
     @Override
     public String toString() {
-        return "SmppHeader{" +
+        return "{" +
                 "commandLength=" + commandLength +
                 ", commandId=" + commandId +
                 ", commandStatus=" + commandStatus +

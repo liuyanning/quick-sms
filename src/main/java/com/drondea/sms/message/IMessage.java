@@ -81,4 +81,6 @@ public interface IMessage {
     void setSendTimeStamp(long timeStamp);
 
     long getSendTimeStamp();
+
+    boolean isActiveTestMessage();
 }

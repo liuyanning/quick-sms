@@ -317,4 +317,9 @@ public abstract class AbstractSmgpMessage implements IMessage, Cloneable {
     public long getSendTimeStamp() {
         return sendTimestamp;
     }
+
+    @Override
+    public boolean isActiveTestMessage() {
+        return false;
+    }
 }

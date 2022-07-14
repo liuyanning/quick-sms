@@ -9,7 +9,6 @@ import com.drondea.sms.common.CommonSequenceNumber;
 import com.drondea.sms.common.SequenceNumber;
 import com.drondea.sms.conf.ClientSocketConfig;
 import com.drondea.sms.limiter.CounterRateLimiter;
-import com.drondea.sms.limiter.RateLimiter;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.MessageProvider;
 import com.drondea.sms.message.SendFailMessage;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -51,28 +49,23 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
     private final SequenceNumber sequenceNumber;
     //滑动窗口
     private Window<Integer, ChannelWindowMessage, IMessage> slidingWindow;
-    private byte interfaceVersion;
     private final LinkedBlockingQueue<IMessage> cacheMsg = new LinkedBlockingQueue();
 
     private ScheduledExecutorService monitorExecutor;
     private IChannelSessionCounters counters;
     private SessionManager sessionManager;
 
-    private AtomicInteger qpsWaitingSize;
     //端口号
     private int localPort;
-
 
     /**
      * session事件处理器
      */
     private ISessionEventHandler sessionEventHandler;
-    private int qpsLimitSize = 50;
 
     private CounterRateLimiter counterLimiter;
     private final ChannelHandlerContext ctx;
     private MessageProvider messageProvider;
-    private boolean isPullMode;
 
     /**
      * 创建session管理器
@@ -93,6 +86,11 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
             this.counters = sessionManager.createSessionCounters();
         }
 
+    }
+
+    @Override
+    public ChannelHandlerContext getChannelHandlerContext() {
+        return this.ctx;
     }
 
     @Override
@@ -127,141 +125,20 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
         completeWindowMsg(message, slidingWindow);
     }
 
-
-    @Override
-    public boolean fireWrite(ChannelHandlerContext ctx, IMessage msg, ChannelPromise promise) {
-        if (getCounters() != null) {
-            countTXMessage(msg);
-        }
-
-        //不是窗口和限速消息类型
-        if (!msg.isWindowSendMessage() || this.isPullMode) {
-            ctx.write(msg, promise);
-            return true;
-        }
-
-        AbstractClientSessionManager clientSessionManager = (AbstractClientSessionManager) getSessionManager();
-        RateLimiter rateLimiter = clientSessionManager.getRateLimiter();
-        //流量控制消息处理
-        if (rateLimiter != null && qpsWaitingSize != null) {
-            sendQPSLimitMessage(ctx, rateLimiter, msg, promise, this.slidingWindow != null);
-            return true;
-        }
-        //不需要流量控制,只需要滑动窗口
-        if (this.slidingWindow != null) {
-            this.sendWindowMessage(ctx, msg, promise);
-            return true;
-        }
-        //不需要流量控制和滑动窗口
-        ctx.write(msg, promise);
-        return true;
-    }
-
-    @Override
-    public void fireWritabilityChanged(boolean writable) {
-        //netty触发可写状态时候，如果限速队列等待的数量过多也不能写
-        if (writable && qpsWaitingSize != null && qpsWaitingSize.get() > qpsLimitSize / 2) {
-            return;
-        }
-        if (writable) {
-            setWritable();
-        } else {
-            setUnwritable();
-        }
-    }
-
-    private void setWritable() {
-        setUserDefinedWritability(true);
-    }
-
-    private void setUnwritable() {
-        setUserDefinedWritability(false);
-    }
-
-    private void setUserDefinedWritability(boolean writable) {
-        ChannelOutboundBuffer cob = this.channel.unsafe().outboundBuffer();
-        if (cob != null) {
-            cob.setUserDefinedWritability(31, writable);
-        }
-    }
-
-    private void fireChannelWritabilityChanged(boolean writable){
-        ISessionEventHandler sessionEventHandler = getSessionEventHandler();
-        //触发事件
-        if (sessionEventHandler != null) {
-            sessionEventHandler.sessionWritablityChanged(writable);
-        }
-    }
-
-    private void sendQPSLimitMessage(ChannelHandlerContext ctx,RateLimiter rateLimiter, IMessage msg, ChannelPromise promise, boolean isWindowMsg) {
-        ScheduledExecutorService scheduleExecutor = DefaultEventGroupFactory.getInstance().getScheduleExecutor();
-        //在发送消息前进行限速
-        long reserveTime = rateLimiter.reserveTime(1);
-        if (reserveTime > 0) {
-            int qpsWait = qpsWaitingSize.incrementAndGet();
-            if (qpsWait > qpsLimitSize) {
-                logger.debug("限速触发可写状态改变：等待数{},{}", qpsWait, false);
-                fireWritabilityChanged(false);
-            }
-//                System.out.println("需要等待：" + (reserveTime * 1.0)/1000000 );
-            //延时指定时间执行
-            scheduleExecutor.schedule(() -> {
-                int waitSize = qpsWaitingSize.decrementAndGet();
-                //非滑动窗口要根据限速排队来改变可写状态,滑动窗口也要兼顾滑动窗口的排队量
-                if (waitSize <= qpsLimitSize / 2) {
-                    if (isWindowMsg) {
-                        int bolocingMessageSize = slidingWindow.getBlockingMessageSize();
-                        if (bolocingMessageSize < qpsLimitSize / 2) {
-                            logger.debug("限速触发可写状态改变：等待数{},{},窗口排队数{}", bolocingMessageSize, true, bolocingMessageSize);
-                            fireWritabilityChanged(true);
-                        }
-                    } else {
-                        logger.debug("限速触发可写状态改变：等待数{},是否可写{}", waitSize, true);
-                        fireWritabilityChanged(true);
-                    }
-                }
-                sendQPSMessage(ctx, msg, promise, isWindowMsg);
-//                    System.out.println("等待：" + (reserveTime * 1.0)/1000000 + "任务数：" + waitSize);
-            }, reserveTime, TimeUnit.MICROSECONDS);
-            logger.trace("拿到本次token, 需要等待 {} 微妙", reserveTime);
-            return;
-        }
-
-        //发送消息,区分窗口消息和普通消息
-        sendQPSMessage(ctx, msg, promise, isWindowMsg);
-    }
-
-    /**
-     * 发送消息封装了一下区分滑动窗口和非滑动窗口
-     *
-     * @param ctx
-     * @param msg
-     * @param promise
-     * @param isWindowMsg
-     */
-    private void sendQPSMessage(ChannelHandlerContext ctx, IMessage msg, ChannelPromise promise, boolean isWindowMsg) {
-        if (isWindowMsg) {
-            this.sendWindowMessage(ctx, msg, promise);
-        } else {
-            ctx.writeAndFlush(msg, promise);
-        }
-    }
-
     @Override
     public ChannelFuture sendMessage(IMessage message) {
-        ChannelFuture channelFuture = this.channel.write(message);
-        //滑动窗口不需要flush
-        if (message.isWindowSendMessage() && this.getSlidingWindow() != null) {
-            return channelFuture;
+        //窗口消息，缓存
+        if (message.isWindowSendMessage()) {
+            cacheMsg.offer(message);
+            return ctx.newPromise().setSuccess();
         }
-        ClientSocketConfig configuration = getConfiguration();
-        //限速消息也不要flush
-        int qpsLimit = configuration.getQpsLimit();
-        if (message.isWindowSendMessage() && qpsLimit > 0) {
-            return channelFuture;
-        }
-        this.channel.flush();
-        return channelFuture;
+        //非窗口直接暴力干
+        return ctx.writeAndFlush(message);
+    }
+
+    @Override
+    public int getMessageCacheSize(IMessage message) {
+        return cacheMsg.size();
     }
 
     /**
@@ -326,7 +203,6 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
         }
         if (GlobalConstants.METRICS_ON) {
             String id = getConfiguration().getId();
-            Metrics.remove("clientChannelQPSSize:" + id + ":" + this.channel.id());
             Metrics.remove("clientChannelWindowSize:" + id + ":" + this.channel.id());
         }
         close();
@@ -395,11 +271,6 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
         return false;
     }
 
-
-    protected void setInterfaceVersion(byte value) {
-        this.interfaceVersion = value;
-    }
-
     @Override
     protected void notifyChannelLoginSuccess(Channel channel) {
         //触发登录成功事件
@@ -420,7 +291,6 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
             delayPullWindowMsg(delay);
             return;
         }
-
         //查看滑动窗口空闲个数,没有滑动窗口延时
         int freeSize = getFreeWindowSize(this.slidingWindow);
         if (freeSize <= 0) {
@@ -441,7 +311,6 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
                 delay = 50;
                 break;
             }
-
             //判断是否可写
             if (!this.channel.isWritable()) {
                 delay = 50;
@@ -453,7 +322,6 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
                 sendWindowMessage(this.ctx ,cacheMsg, ctx.newPromise());
             }
         }
-
         delayPullWindowMsg(delay);
     }
 
@@ -468,43 +336,12 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
     }
 
     @Override
-    protected void changeWritable(Window<Integer, ChannelWindowMessage, IMessage> slidingWindow) {
-        if (this.isPullMode) {
-            return;
-        }
-
-        int blockingMessageSize = slidingWindow.getBlockingMessageSize();
-        //限速+滑动窗口，滑动窗口队列要少，限速不能有排队才变为可写状态,只是利用滑动窗口发送，改变可写状态的条件
-        if (blockingMessageSize < qpsLimitSize / 2) {
-            if (qpsWaitingSize != null) {
-                int waitSize = qpsWaitingSize.get();
-                if (waitSize < qpsLimitSize / 2) {
-                    logger.debug("滑动窗口1触发可写状态改变true：等待数{},{}", blockingMessageSize, true);
-                    fireWritabilityChanged(true);
-                }
-            } else {
-                logger.debug("滑动窗口2触发可写状态改变true：等待数{},{}", blockingMessageSize, true);
-                fireWritabilityChanged(true);
-            }
-        }
-    }
-
-    @Override
     public void sendWindowMessage(ChannelHandlerContext ctx, IMessage message, ChannelPromise promise) {
-
         try {
             ChannelWindowMessage windowMessage = new ChannelWindowMessage(ctx, message, promise);
             //会占用线程等待超时，所以时间设置多少要综合考虑
             WindowFuture offer = slidingWindow.offer(message.getSequenceId(), windowMessage, 20000,
                     configuration.getRequestExpiryTimeout());
-
-            if (!this.isPullMode) {
-                int blockingMessageSize = slidingWindow.getBlockingMessageSize();
-                if (blockingMessageSize > qpsLimitSize) {
-                    logger.debug("滑动窗口触发可写状态改变：等待数{},{}", blockingMessageSize, false);
-                    fireWritabilityChanged(false);
-                }
-            }
 
             if (offer != null) {
                 //打印当前等待获取slot的key
@@ -521,7 +358,7 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
                 message.setSendTimeStamp(System.currentTimeMillis());
                 //用户线程执行writeAndFlush，会在netty队列中执行,这里必须是ctx，否则可能死循环
                 ChannelFuture channelFuture = ctx.writeAndFlush(message, promise);
-                logger.debug("write channel: {}", message);
+//                logger.debug("write channel: {}", message);
                 channelFuture.addListener((ChannelFutureListener) future -> {
                     if (!future.isSuccess()) {
                         logger.error("window message send failure, {}, {}", message, channelFuture);
@@ -533,7 +370,7 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
                 });
 
                 //拉取模式的计数方法
-                if (configuration.isCountersEnabled() && this.isPullMode) {
+                if (configuration.isCountersEnabled()) {
                     //计数
                     countTXMessage(message);
                 }
@@ -545,7 +382,6 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
     }
 
     public void doAfterLogin() {
-
         int windowSize = configuration.getWindowSize();
         if (windowSize > 0 && configuration.getWindowMonitorInterval() > 0) {
             monitorExecutor = DefaultEventGroupFactory.getInstance().getScheduleExecutor();
@@ -553,30 +389,22 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
             this.slidingWindow = new Window<>(windowSize, monitorExecutor,
                     configuration.getWindowMonitorInterval(), this, monitorThreadName);
         }
-        if (configuration.getQpsLimit() > 0) {
-            this.qpsWaitingSize = new AtomicInteger();
-        }
 
         AbstractClientSessionManager clientSessionManager = (AbstractClientSessionManager) getSessionManager();
         this.counterLimiter = clientSessionManager.getCounterRateLimiter();
 
         //中间件主动拉取消息模式
-        if (clientSessionManager.getMessageProvider() != null && this.slidingWindow != null) {
-            this.isPullMode = true;
+        if (this.slidingWindow != null) {
             this.messageProvider = clientSessionManager.getMessageProvider();
             //延时1秒，开始拉取消息
             delayPullWindowMsg(1000);
+        } else {
+            logger.error("window Size could not be 0");
         }
 
         if (GlobalConstants.METRICS_ON) {
             String id = getConfiguration().getId();
             MetricRegistry registry = Metrics.getInstance().getRegistry();
-            if (qpsWaitingSize != null) {
-                //超速等待队列大小
-                registry.register("clientChannelQPSSize:" + id + ":" + this.channel.id(),
-                        (Gauge<Integer>) () -> qpsWaitingSize.get()
-                );
-            }
 
             if (slidingWindow != null) {
                 //窗口等待队列大小
@@ -590,11 +418,6 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
     @Override
     public boolean isWritable() {
         return this.channel.isWritable();
-    }
-
-    @Override
-    public int getWaitSize() {
-        return qpsWaitingSize == null ? 00 : qpsWaitingSize.get();
     }
 
     @Override

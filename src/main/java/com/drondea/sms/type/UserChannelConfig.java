@@ -15,6 +15,7 @@ public class UserChannelConfig {
     private String validIp;
     private int qpsLimit;
     private int channelLimit;
+    private int idleTime;
 
     /**
      * 开启滑动窗口发送回执和上行短信
@@ -117,5 +118,13 @@ public class UserChannelConfig {
 
     public void setRequestExpiryTimeout(long requestExpiryTimeout) {
         this.requestExpiryTimeout = requestExpiryTimeout;
+    }
+
+    public int getIdleTime() {
+        return idleTime;
+    }
+
+    public void setIdleTime(int idleTime) {
+        this.idleTime = idleTime;
     }
 }

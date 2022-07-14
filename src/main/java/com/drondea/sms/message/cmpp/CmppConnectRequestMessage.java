@@ -83,7 +83,8 @@ public class CmppConnectRequestMessage extends AbstractCmppMessage {
 
     @Override
     public String toString() {
-        return String.format("CmppConnectRequestMessage [version=%s, sourceAddr=%s, sequenceId=%s]", version, sourceAddr, getHeader().getSequenceId());
+        return "CmppConnectRequestMessage [version="+ version +
+                ", sourceAddr= "+ sourceAddr +", sequenceId= "+ getHeader().getSequenceId() +"]";
     }
 
 }

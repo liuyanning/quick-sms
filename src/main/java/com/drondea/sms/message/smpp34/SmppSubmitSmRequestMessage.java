@@ -68,6 +68,7 @@ public class SmppSubmitSmRequestMessage extends AbstractSmppMessage implements I
 
     private String signature;
     private String batchNumber;
+    private boolean isFixedSignature;
 
     @Override
     public int getBodyLength() {
@@ -262,32 +263,6 @@ public class SmppSubmitSmRequestMessage extends AbstractSmppMessage implements I
     }
 
     @Override
-    public String toString() {
-        return "SmppSubmitRequestMessage{" +
-                "header=" + this.getHeader().toString() +
-                "serviceType='" + serviceType + '\'' +
-                ", sourceAddrTon=" + sourceAddrTon +
-                ", sourceAddrNpi=" + sourceAddrNpi +
-                ", sourceAddr='" + sourceAddr + '\'' +
-                ", destAddrTon=" + destAddrTon +
-                ", destAddrNpi=" + destAddrNpi +
-                ", destinationAddr='" + destinationAddr + '\'' +
-                ", esmClass=" + esmClass +
-                ", protocolId=" + protocolId +
-                ", priorityFlag=" + priorityFlag +
-                ", scheduleDeliveryTime='" + scheduleDeliveryTime + '\'' +
-                ", validityPeriod='" + validityPeriod + '\'' +
-                ", registeredDelivery=" + registeredDelivery +
-                ", replaceIfPresentFlag=" + replaceIfPresentFlag +
-                ", dataCoding=" + dataCoding +
-                ", smDefaultMsgIid=" + smDefaultMsgIid +
-                ", smLength=" + smLength +
-                ", defaultMsgId=" + defaultMsgId +
-                ", shortMessage=" + getMsgContent() +
-                '}';
-    }
-
-    @Override
     public LongMessageSlice generateSlice() {
         LongMessageSlice slice = new LongMessageSlice();
         slice.setTpPid(getProtocolId());
@@ -433,5 +408,40 @@ public class SmppSubmitSmRequestMessage extends AbstractSmppMessage implements I
     @Override
     public String getBatchNumber() {
         return this.batchNumber;
+    }
+
+    @Override
+    public boolean isFixedSignature() {
+        return isFixedSignature;
+    }
+
+    public void setFixedSignature(boolean fixedSignature) {
+        isFixedSignature = fixedSignature;
+    }
+
+    @Override
+    public String toString() {
+        return "SmppSubmitRequestMessage{" +
+                "header=" + this.getHeader().toString() +
+                ", serviceType='" + serviceType + '\'' +
+                ", sourceAddrTon=" + sourceAddrTon +
+                ", sourceAddrNpi=" + sourceAddrNpi +
+                ", sourceAddr='" + sourceAddr + '\'' +
+                ", destAddrTon=" + destAddrTon +
+                ", destAddrNpi=" + destAddrNpi +
+                ", destinationAddr='" + destinationAddr + '\'' +
+                ", esmClass=" + esmClass +
+                ", protocolId=" + protocolId +
+                ", priorityFlag=" + priorityFlag +
+                ", scheduleDeliveryTime='" + scheduleDeliveryTime + '\'' +
+                ", validityPeriod='" + validityPeriod + '\'' +
+                ", registeredDelivery=" + registeredDelivery +
+                ", replaceIfPresentFlag=" + replaceIfPresentFlag +
+                ", dataCoding=" + dataCoding +
+                ", smDefaultMsgIid=" + smDefaultMsgIid +
+                ", smLength=" + smLength +
+                ", defaultMsgId=" + defaultMsgId +
+                ", shortMessage=" + getMsgContent() +
+                '}';
     }
 }

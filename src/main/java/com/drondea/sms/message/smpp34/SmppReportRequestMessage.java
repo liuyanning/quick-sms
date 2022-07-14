@@ -1,7 +1,6 @@
 package com.drondea.sms.message.smpp34;
 
 
-import com.drondea.sms.message.smpp34.codec.SmppDeliverSmRequestMessageCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,4 +140,12 @@ public class SmppReportRequestMessage {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("{id=").append(id).append(",").append("sub=").append(sub).append(",").append("dlvrd=").append(dlvrd).append(",")
+                .append("subTime=").append(submit_date).append(",").append("doneTime=").append(done_date).append(",").append("stat=").append(stat).append(",")
+                .append("err=").append(err).append(",").append("text=").append(text).append("}");
+        return buffer.toString();
+    }
 }

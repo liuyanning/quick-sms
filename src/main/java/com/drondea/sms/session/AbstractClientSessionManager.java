@@ -13,6 +13,7 @@ import com.drondea.sms.type.*;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +48,8 @@ public abstract class AbstractClientSessionManager implements SessionManager {
      */
     private List<ChannelSession> sessions;
 
-
     private ScheduledFuture<?> scheduledFuture;
 
-    /**
-     * 总流速限速
-     */
-    private RateLimiter rateLimiter;
     /**
      * 令牌桶限流策略线程池
      */
@@ -78,7 +74,6 @@ public abstract class AbstractClientSessionManager implements SessionManager {
     private Timer clientWindowTimer;
 
     public AbstractClientSessionManager(ClientSocketConfig clientSocketConfig, ICustomHandler customInterface) {
-
         if (clientSocketConfig == null) {
             return;
         }
@@ -87,17 +82,8 @@ public abstract class AbstractClientSessionManager implements SessionManager {
         //读多写少用这个
         this.sessions = new CopyOnWriteArrayList<>();
         this.connector = getConnector();
-        if (clientSocketConfig.getQpsLimit() > 0 && getMessageProvider() == null) {
-            this.rateLimiter = RateLimiter.create(clientSocketConfig.getQpsLimit());
-//            DefaultEventGroupFactory instance = DefaultEventGroupFactory.getInstance();
-            //一个通道绑定一个线程池
-//            qpsLimitExecutor = new ThreadPoolExecutor(1,
-//                    1,
-//                    0L, TimeUnit.SECONDS,
-//                    new LinkedBlockingQueue<Runnable>(),
-//                    new BasicThreadFactory.Builder().namingPattern("qpsLimitPool-%d").
-//                            uncaughtExceptionHandler(instance.getExceptionHandler()).build(),
-//                    instance.getRejectedExcutionHandler());
+        if (clientSocketConfig.getQpsLimit() > 0) {
+            this.counterRateLimiter = new CounterRateLimiter(clientSocketConfig.getQpsLimit());
         }
         this.customInterface = customInterface;
         String id = clientSocketConfig.getId();
@@ -129,7 +115,6 @@ public abstract class AbstractClientSessionManager implements SessionManager {
             logger.debug("创建连接");
             connector.bind(clientSocketConfig);
         }
-
     }
 
     @Override
@@ -178,21 +163,15 @@ public abstract class AbstractClientSessionManager implements SessionManager {
 
     @Override
     public int getSessionSize() {
+        if (this.sessions == null) {
+            return 0;
+        }
         return this.sessions.size();
     }
-
 
     @Override
     public ICustomHandler getCustomHandler() {
         return this.customInterface;
-    }
-
-    public RateLimiter getRateLimiter() {
-        return rateLimiter;
-    }
-
-    public void setRateLimiter(RateLimiter rateLimiter) {
-        this.rateLimiter = rateLimiter;
     }
 
     public ExecutorService getQpsLimitExecutor() {
@@ -221,15 +200,16 @@ public abstract class AbstractClientSessionManager implements SessionManager {
      * @param permitsPerSecond
      */
     public void resetSpeed(int permitsPerSecond){
-        if (rateLimiter != null) {
-            rateLimiter.setRate(permitsPerSecond);
-        }
         if (counterRateLimiter != null) {
             counterRateLimiter.setPermitsPerSecond(permitsPerSecond);
         }
         clientSocketConfig.setQpsLimit(permitsPerSecond);
     }
 
+    /**
+     * 重新设置window大小
+     * @param windowSize
+     */
     public void resetWindowSize(int windowSize){
         sessions.forEach(session -> {
             session.resetWindowSize(windowSize);
@@ -244,9 +224,6 @@ public abstract class AbstractClientSessionManager implements SessionManager {
 
     @Override
     public void setMessageProvider(MessageProvider messageProvider) {
-        if (clientSocketConfig.getQpsLimit() > 0) {
-            this.counterRateLimiter = new CounterRateLimiter(clientSocketConfig.getQpsLimit());
-        }
         this.messageProvider = messageProvider;
     }
 }

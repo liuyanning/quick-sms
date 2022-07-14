@@ -2,9 +2,7 @@ package com.drondea.sms.session.cmpp;
 
 import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.util.CommonUtil;
-import com.drondea.sms.conf.ServerSocketConfig;
 import com.drondea.sms.conf.cmpp.CmppServerSocketConfig;
-import com.drondea.sms.handler.TailHandler;
 import com.drondea.sms.handler.limiter.AbstractCounterLimitHandler;
 import com.drondea.sms.handler.transcoder.Cmpp20MessageCodec;
 import com.drondea.sms.handler.transcoder.Cmpp30MessageCodec;
@@ -66,11 +64,12 @@ public class CmppServerSession extends AbstractServerSession {
         long timestamp = msg.getTimestamp();
         UserChannelConfig userChannelConfig = sessionManager.getUserChannelConfig(sourceAddr);
         short version = msg.getVersion();
-        if (userChannelConfig == null || !validIpAddress(userChannelConfig, getChannel())) {
+        if (userChannelConfig == null) {
             //登录失败，用户不存在或者IP不合法
-            sendLoginFailed(msg, userChannelConfig, 2, version);
+            sendLoginFailed(msg, null, 6, version);
             return;
         }
+
         //设置用户名
         setUserName(userChannelConfig.getUserName());
         userChannelConfig.setVersion(version);
@@ -82,10 +81,10 @@ public class CmppServerSession extends AbstractServerSession {
         }
 
         int validResult = validClientMsg(authenticatorSource, timestamp, userChannelConfig);
-
+        boolean isValidIp = validIpAddress(userChannelConfig, getChannel());
         logger.debug("登录结果 {}, {}", validResult, customValidResult);
         //验证成功
-        if (customValidResult && validResult == 0) {
+        if (customValidResult && validResult == 0 && isValidIp) {
             //添加session说明超过最大的连接限制数
             boolean addResult = sessionManager.addUserSession(userChannelConfig, this);
             logger.debug("校验成功,添加用户, {}", addResult);
@@ -119,6 +118,10 @@ public class CmppServerSession extends AbstractServerSession {
         } else {
             //认证错误或者自定义校验错误
             validResult = 3;
+        }
+        //IP不合法错误码2
+        if (!isValidIp) {
+            validResult = 2;
         }
         failedLogin(userChannelConfig, msg, validResult);
 
@@ -186,8 +189,8 @@ public class CmppServerSession extends AbstractServerSession {
 
         pipeline.addLast("ServerSessionFilterHandler", CmppConstants.SERVER_SESSION_FILTER_HANDLER);
 
-        ServerSocketConfig connConf = getConfiguration();
-        int idleTime = connConf.getIdleTime() == 0 ? 30 : connConf.getIdleTime();
+        UserChannelConfig userChannelConfig = getUserChannelConfig();
+        int idleTime = userChannelConfig.getIdleTime() == 0 ? 30 : userChannelConfig.getIdleTime();
         //心跳检测,在idleTime秒没有读写就写入activeTest请求，如果idleTime * 3服务器没有相应数据那么关掉连接
         pipeline.addLast("IdleStateHandler",
                 new IdleStateHandler(idleTime * 3, 0, idleTime, TimeUnit.SECONDS));
@@ -220,7 +223,7 @@ public class CmppServerSession extends AbstractServerSession {
         if (customHandler != null) {
             customHandler.configPipelineAfterLogin(pipeline);
         }
-//        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
+        pipeline.addLast("NettyTailHandler", GlobalConstants.TAIL_HANDLER);
         notifyChannelLoginSuccess(channel);
     }
 

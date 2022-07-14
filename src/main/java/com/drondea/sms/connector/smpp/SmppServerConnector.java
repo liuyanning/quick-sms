@@ -52,7 +52,8 @@ public class SmppServerConnector extends AbstractServerConnector {
         pipeline.addLast("FrameDecoder", new LengthFieldBasedFrameDecoder(4 * 1024, 0, 4, -4, 0, true));
 
         pipeline.addLast("SmppMessageCodec", Smpp34MessageCodec.getInstance());
-
+        //记录日志
+        pipeline.addLast("MessageLogHandler", GlobalConstants.MESSAGE_LOG_HANDLER);
         //session管理
         pipeline.addLast("SessionHandler", new SessionHandler(getSessionManager()));
     }

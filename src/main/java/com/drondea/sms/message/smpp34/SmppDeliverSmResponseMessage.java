@@ -43,7 +43,7 @@ public class SmppDeliverSmResponseMessage extends AbstractSmppMessage {
     public String toString() {
         return "SmppDeliverSmResponseMessage{" +
                 "header=" + this.getHeader().toString() +
-                "messageId='" + messageId + '\'' +
+                ", messageId='" + messageId + '\'' +
 //                "OptionalParameters='" + getOptionalParameters().toString() + '\'' +
                 '}';
     }

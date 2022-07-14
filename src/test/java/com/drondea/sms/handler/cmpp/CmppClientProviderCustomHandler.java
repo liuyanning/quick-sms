@@ -4,20 +4,19 @@ import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.SequenceNumber;
 import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.message.IMessage;
-import com.drondea.sms.message.SendFailMessage;
+import com.drondea.sms.message.MessageProvider;
 import com.drondea.sms.message.cmpp.CmppSubmitRequestMessage;
 import com.drondea.sms.session.AbstractClientSession;
-import com.drondea.sms.thirdparty.SmsAlphabet;
-import com.drondea.sms.thirdparty.SmsDcs;
-import com.drondea.sms.thirdparty.SmsMessage;
-import com.drondea.sms.thirdparty.SmsTextMessage;
-import com.drondea.sms.type.DefaultEventGroupFactory;
+import com.drondea.sms.session.SessionManager;
 import com.drondea.sms.type.ICustomHandler;
 import com.drondea.sms.type.IMessageResponseHandler;
 import com.drondea.sms.type.UserChannelConfig;
 import com.drondea.sms.windowing.DuplicateKeyException;
 import com.drondea.sms.windowing.OfferTimeoutException;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +31,9 @@ import java.util.concurrent.TimeUnit;
  * @author: 刘彦宁
  * @date: 2020年06月23日17:35
  **/
-public class CmppClientCustomHandler extends ICustomHandler {
+public class CmppClientProviderCustomHandler extends ICustomHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(CmppClientCustomHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(CmppClientProviderCustomHandler.class);
 
     @Override
     public void fireUserLogin(Channel channel, ChannelSession channelSession) {
@@ -44,9 +43,7 @@ public class CmppClientCustomHandler extends ICustomHandler {
             System.out.println("可写状态发生改变：" + writable);
         });
 
-        final EventExecutor executor = channel.pipeline().firstContext().executor();
-
-
+        CmppClientMessageProvider messageProvider = (CmppClientMessageProvider) channelSession.getSessionManager().getMessageProvider();
         System.out.println("用户登录成功--开始发送短信,端口号：" + ((AbstractClientSession)channelSession).getLocalPort());
 
         int i = 0;
@@ -89,12 +86,7 @@ public class CmppClientCustomHandler extends ICustomHandler {
                 }
             });
 
-            int finalI = i;
-            //切分长短信
-            List<IMessage> longMsgSlices = CommonUtil.getLongMsgSlices(requestMessage, channelSession.getConfiguration(), sequenceNumber);
-            longMsgSlices.forEach(msg -> {
-                channelSession.sendMessage(msg);
-            });
+            messageProvider.addMessage(requestMessage);
             i ++;
         }
     }

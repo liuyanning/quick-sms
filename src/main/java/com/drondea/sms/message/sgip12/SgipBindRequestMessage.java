@@ -71,8 +71,8 @@ public class SgipBindRequestMessage extends AbstractSgipMessage {
     }
     @Override
     public String toString() {
-        return String.format("SgipBindRequestMessage [loginType=%s, reserve=%s, header=%s]",
-                loginType, reserve, getHeader().toString());
+        return "SgipBindRequestMessage [loginType="+loginType+", reserve="+ reserve
+                +",header="+getHeader().toString()+"]";
     }
 
 }

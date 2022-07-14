@@ -49,9 +49,10 @@ public class SmppClientConnector extends AbstractClientConnector {
         pipeline.addLast("LoggingHandler", new LoggingHandler(String.format(GlobalConstants.BYTE_LOG_PREFIX, socketConfig.getId()), LogLevel.DEBUG));
         //粘包处理,CMPP的
         pipeline.addLast("FrameDecoder", new LengthFieldBasedFrameDecoder(4 * 1024, 0, 4, -4, 0, true));
-
+        //编解码
         pipeline.addLast("SmppMessageCodec", Smpp34MessageCodec.getInstance());
-
+        //记录日志
+        pipeline.addLast("MessageLogHandler", GlobalConstants.MESSAGE_LOG_HANDLER);
         //session管理
         pipeline.addLast("SessionHandler", new SessionHandler(getSessionManager()));
     }

@@ -28,9 +28,9 @@ public class ClientSocketConfig extends SocketConfig {
      */
     private long bindTimeout;
     /**
-     * 滑动窗口size
+     * 滑动窗口size，默认16
      */
-    private int windowSize;
+    private int windowSize = 16;
 
     /**
      * 滑动窗口超时检测间隔,建议 requestExpiryTimeout * 0.5（毫秒）
@@ -68,7 +68,6 @@ public class ClientSocketConfig extends SocketConfig {
      * 此通道的签名类型，分为前置和后置
      */
     private SignaturePosition signaturePosition;
-
 
     public ClientSocketConfig(String id, long bindTimeout, int windowSize, String host, int port) {
         super(host, port);

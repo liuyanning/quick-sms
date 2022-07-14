@@ -46,7 +46,6 @@ public class SessionHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.debug("channel read: {}", msg);
         //优化成线程池处理避免阻塞netty线程
         session.fireMsgReceived((IMessage) msg);
         super.channelRead(ctx, msg);
@@ -62,13 +61,6 @@ public class SessionHandler extends ChannelDuplexHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         session.fireExceptionThrown(cause);
         super.exceptionCaught(ctx, cause);
-    }
-
-    @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        logger.debug("write: {}", msg);
-        //获取到窗口slot才可以发送
-        session.fireWrite(ctx, (IMessage) msg, promise);
     }
 
 }

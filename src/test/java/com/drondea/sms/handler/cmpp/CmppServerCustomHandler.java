@@ -39,6 +39,7 @@ public class CmppServerCustomHandler extends ICustomHandler {
         logger.debug("客户端事件处理");
 
         AbstractServerSession serverSession = (AbstractServerSession) channelSession;
+        System.out.println("client port:" + serverSession.getRemotePort());
         UserChannelConfig userChannelConfig = serverSession.getUserChannelConfig();
         countConnection((AbstractServerSessionManager) serverSession.getSessionManager(), userChannelConfig.getUserName());
 

@@ -1,14 +1,27 @@
 package com.drondea.sms.handler.sgip;
 
 import com.drondea.sms.channel.ChannelSession;
+import com.drondea.sms.common.SequenceNumber;
 import com.drondea.sms.common.util.CommonUtil;
+import com.drondea.sms.common.util.MsgId;
+import com.drondea.sms.common.util.SgipSequenceNumber;
+import com.drondea.sms.conf.sgip.SgipClientSocketConfig;
+import com.drondea.sms.message.IMessage;
+import com.drondea.sms.message.cmpp.CmppDeliverRequestMessage;
+import com.drondea.sms.message.cmpp.CmppReportRequestMessage;
+import com.drondea.sms.message.sgip12.SgipReportRequestMessage;
+import com.drondea.sms.message.sgip12.SgipReportResponseMessage;
 import com.drondea.sms.message.sgip12.SgipSubmitRequestMessage;
 import com.drondea.sms.message.sgip12.SgipSubmitResponseMessage;
+import com.drondea.sms.session.AbstractClientSession;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,35 +58,10 @@ public class ServerSgipSubmitRequestHandler extends SimpleChannelInboundHandler<
             System.out.println("接受:" + msg.getSequenceId() + " 总数：" + incrementAndGet + ":" + System.currentTimeMillis());
         }
 
+        ChannelSession channelSession = CommonUtil.getChannelSession(ctx.channel());
         SgipSubmitResponseMessage response = new SgipSubmitResponseMessage(msg.getHeader());
         System.out.println("sequenceNumber:" + response.getHeader().getSequenceNumber());
         response.setResult((short) 0);
-        ctx.channel().writeAndFlush(response);
-//        MsgId msgId = response.getMsgId();
-
-
-        ChannelSession channelSession = CommonUtil.getChannelSession(ctx.channel());
-//        SequenceNumber sequenceNumber = channelSession.getSequenceNumber();
-//        //模拟发送状态回执
-//        CmppDeliverRequestMessage deliverRequestMessage = new CmppDeliverRequestMessage();
-//
-//        deliverRequestMessage.getHeader().setSequenceId(sequenceNumber.next());
-//        deliverRequestMessage.setRegisteredDelivery((short) 1);
-//        //状态信息
-//        CmppReportRequestMessage report = new CmppReportRequestMessage();
-//        report.setMsgId(msgId);
-//        report.setStat("DELIVERED");
-//        report.setDestterminalId(msg.getDestTerminalId()[0]);
-//        report.setSubmitTime("2006221701");
-//        report.setDoneTime("2006221701");
-//        deliverRequestMessage.setReportRequestMessage(report);
-//        ctx.channel().writeAndFlush(deliverRequestMessage);
-
-        //模拟发送上行短信
-//        CmppDeliverRequestMessage mo = new CmppDeliverRequestMessage();
-//        mo.getHeader().setSequenceId(sequenceNumber.next());
-//        mo.setRegisteredDelivery((short) 0);
-//        mo.setMsgContent("TEST");
-//        ctx.channel().writeAndFlush(mo);
+        channelSession.sendMessage(response);
     }
 }

@@ -18,15 +18,15 @@ import java.io.InputStreamReader;
 public class SgipClientTest {
     public static void main(String[] args) throws InterruptedException {
         GlobalConstants.METRICS_CONSOLE_ON = false;
-        String host = "192.168.1.156";
+        String host = "127.0.0.1";
         //滑动窗口建议值为16
         SgipClientSocketConfig socketConfig = new SgipClientSocketConfig("test",
-                10 * 1000, 16, host, 8801);
+                10 * 1000, 16, host, 8802);
         socketConfig.setChannelSize(1);
-        socketConfig.setNodeId(3027130067L);
+        socketConfig.setNodeId(0);
         //socketConfig.setLoginType((short) 2);
-        socketConfig.setUserName("100625");
-        socketConfig.setPassword("SQnDnl");
+        socketConfig.setUserName("100001");
+        socketConfig.setPassword("123123");
 
         //限速 条/s
         socketConfig.setQpsLimit(10);
@@ -46,7 +46,7 @@ public class SgipClientTest {
 //        sessionManager.doCheckSessions();
         Thread.sleep(60 * 1000);
         System.out.println("再次连接");
-        sessionManager.doOpen();
+//        sessionManager.doOpen();
         try {
             String str = new BufferedReader(new InputStreamReader(System.in)).readLine();
         } catch (IOException e) {

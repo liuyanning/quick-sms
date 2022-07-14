@@ -1,7 +1,7 @@
 package com.drondea.sms.handler.sgip;
 
 import com.drondea.sms.channel.ChannelSession;
-import com.drondea.sms.handler.TailHandler;
+import com.drondea.sms.handler.TailBizHandler;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.type.ICustomHandler;
 import com.drondea.sms.type.UserChannelConfig;
@@ -42,7 +42,7 @@ public class SgipServerCustomHandler extends ICustomHandler {
         pipeline.addLast("ServerMessageRecieverHandler", new ServerSgipSubmitRequestHandler());
         pipeline.addLast("ServerSgipDeliverRequestHandler", new ServerSgipDeliverRequestHandler());
         pipeline.addLast("ServerSgipReportRequestHandler", new ServerSgipReportRequestHandler());
-        pipeline.addLast("NettyTailHandler", new TailHandler());
+        pipeline.addLast("NettyTailHandler", new TailBizHandler());
     }
 
     @Override

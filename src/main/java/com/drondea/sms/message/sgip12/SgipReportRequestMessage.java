@@ -85,9 +85,11 @@ public class SgipReportRequestMessage extends AbstractSgipMessage {
     }
     @Override
     public String toString() {
-        return String
-                .format("SgipReportRequestMessage [ submitSequenceNumber=%s, reportType=%s, userNumber=%s, state=%s, errorCode=%s, reserve=%s, header=%s]",
-                        submitSequenceNumber.toString(),reportType, userNumber, state,
-                        errorCode, reserve, getHeader().toString());
+        StringBuilder sb = new StringBuilder();
+        sb.append("SgipReportRequestMessage [submitSequenceNumber=").append(submitSequenceNumber.toString()).
+                append(", reportType=").append(reportType).append(", userNumber=").append(userNumber)
+                .append(", state=").append(state).append(", errorCode=").append(errorCode).append(", reserve=").append(reserve)
+                .append(", header=").append(getHeader().toString()).append("]");
+        return sb.toString();
     }
 }

@@ -2,6 +2,8 @@ package com.drondea.sms.handler.sgip;
 
 import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.util.SgipSequenceNumber;
+import com.drondea.sms.conf.SocketConfig;
+import com.drondea.sms.conf.sgip.SgipClientSocketConfig;
 import com.drondea.sms.message.sgip12.SgipUnbindRequestMessage;
 import com.drondea.sms.type.CmppConstants;
 import io.netty.channel.ChannelDuplexHandler;
@@ -34,7 +36,8 @@ public class SgipIdleStateHandler extends ChannelDuplexHandler {
                 if (ctx.channel().isActive()) {
                     SgipUnbindRequestMessage msg = new SgipUnbindRequestMessage();
                     ChannelSession channelSession = ctx.channel().attr(CmppConstants.NETTY_SESSION_KEY).get();
-                    msg.getHeader().setSequenceNumber(new SgipSequenceNumber(1, channelSession.getSequenceNumber().next()));
+                    SgipClientSocketConfig configuration = (SgipClientSocketConfig) channelSession.getConfiguration();
+                    msg.getHeader().setSequenceNumber(new SgipSequenceNumber(configuration.getNodeId(), channelSession.getSequenceNumber().next()));
                     ctx.channel().writeAndFlush(msg);
                 } else {
                     logger.error("心跳超时关闭连接1 {}", e.state());

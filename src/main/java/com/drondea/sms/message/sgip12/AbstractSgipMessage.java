@@ -180,4 +180,9 @@ public abstract class AbstractSgipMessage implements IMessage, Cloneable {
     public long getSendTimeStamp() {
         return sendTimestamp;
     }
+
+    @Override
+    public boolean isActiveTestMessage() {
+        return false;
+    }
 }

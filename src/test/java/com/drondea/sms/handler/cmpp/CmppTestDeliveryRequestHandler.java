@@ -36,12 +36,12 @@ public class CmppTestDeliveryRequestHandler extends SimpleChannelInboundHandler<
             CmppReportRequestMessage reportMessage = msg.getReportRequestMessage();
             MsgId msgId = reportMessage.getMsgId();
             String stat = reportMessage.getStat();
-//            logger.info("msgId: {}, stat: {}",msgId, stat);
+            logger.info("msgId: {}, stat: {}",msgId, stat);
         } else {
             //是否长短信组装完毕
             boolean msgComplete = msg.isMsgComplete();
             if (msgComplete) {
-                logger.debug("组装完毕，短信内容：{}", msg.getMsgContent());
+                logger.debug("组装完毕，短信内容：{}", msg);
 
                 //组装完成测试长短信拆分
 //                ctx.channel().writeAndFlush(msg);

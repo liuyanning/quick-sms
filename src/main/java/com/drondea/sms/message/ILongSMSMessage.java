@@ -125,4 +125,10 @@ public interface ILongSMSMessage<T> {
     void setPkNumber(short pkNumber);
 
     short getPkNumber();
+
+    /**
+     * 是否是固签消息（提交需要去签名）
+     * @return
+     */
+    boolean isFixedSignature();
 }

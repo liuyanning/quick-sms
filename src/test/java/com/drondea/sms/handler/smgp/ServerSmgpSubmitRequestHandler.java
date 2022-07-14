@@ -5,6 +5,7 @@ import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.SequenceNumber;
 import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.common.util.SmgpMsgId;
+import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.smgp30.msg.SmgpDeliverRequestMessage;
 import com.drondea.sms.message.smgp30.msg.SmgpReportMessage;
 import com.drondea.sms.message.smgp30.msg.SmgpSubmitRequestMessage;
@@ -15,6 +16,7 @@ import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -57,9 +59,7 @@ public class ServerSmgpSubmitRequestHandler extends SimpleChannelInboundHandler<
 
         final EventExecutor executor = ctx.channel().pipeline().firstContext().executor();
 
-        executor.submit(() -> {
-            channelSession.sendMessage(response);
-        });
+        channelSession.sendMessage(response);
 
 
         SmgpMsgId msgId = response.getSmgpMsgId();
@@ -84,14 +84,20 @@ public class ServerSmgpSubmitRequestHandler extends SimpleChannelInboundHandler<
 //        deliverRequestMessage.setTpPid((byte)8);
 //        deliverRequestMessage.setTpUdhi((byte)6);
 
-        executor.submit(() -> {
-            channelSession.sendMessage(deliverRequestMessage);
-        });
+        channelSession.sendMessage(deliverRequestMessage);
 
 //        模拟发送上行短信
-//        deliverRequestMessage.getHeader().setSequenceId(sequenceNumber.next());
-//        deliverRequestMessage.setIsReport(false);
-//        deliverRequestMessage.setMsgContent("mo msg content test");
-//        ctx.channel().writeAndFlush(deliverRequestMessage);// 发送 mo
+        SmgpDeliverRequestMessage mo = new SmgpDeliverRequestMessage();
+
+        mo.getHeader().setSequenceId(sequenceNumber.next());
+        mo.setIsReport(true);
+        mo.getHeader().setSequenceId(sequenceNumber.next());
+        mo.setIsReport(false);
+        mo.setMsgContent("mo msg content test");
+        //切分长短信
+        List<IMessage> longMsgSlices = CommonUtil.getLongMsgSlices(mo, channelSession.getConfiguration(), sequenceNumber);
+        longMsgSlices.forEach(deliverMsg -> {
+            channelSession.sendMessage(deliverMsg);
+        });
     }
 }

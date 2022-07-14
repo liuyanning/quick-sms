@@ -22,7 +22,6 @@ public class SgipUnbindResponseMessage extends AbstractSgipMessage {
     }
     @Override
     public String toString() {
-        return String
-                .format("SgipUnbindResponseMessage [header=%s]",getHeader().toString());
+        return "SgipUnbindResponseMessage [header="+getHeader().toString()+"]";
     }
 }

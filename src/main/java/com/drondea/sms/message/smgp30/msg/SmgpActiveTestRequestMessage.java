@@ -25,6 +25,11 @@ public class SmgpActiveTestRequestMessage extends AbstractSmgpMessage {
     }
 
     @Override
+    public boolean isActiveTestMessage() {
+        return true;
+    }
+
+    @Override
     public int getBodyLength() {
         return 0;
     }

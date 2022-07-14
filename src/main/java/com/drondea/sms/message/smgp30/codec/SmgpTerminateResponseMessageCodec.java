@@ -4,7 +4,7 @@ import com.drondea.sms.message.ICodec;
 import com.drondea.sms.message.IHeader;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.smgp30.msg.SmgpHeader;
-import com.drondea.sms.message.smgp30.msg.SmgpTerminateResponseMessage;
+import com.drondea.sms.message.smgp30.msg.SmgpExitResponseMessage;
 
 import io.netty.buffer.ByteBuf;
 
@@ -18,7 +18,7 @@ public class SmgpTerminateResponseMessageCodec implements ICodec {
 
     @Override
     public IMessage decode(IHeader header, ByteBuf bodyBuffer) {
-        SmgpTerminateResponseMessage message = new SmgpTerminateResponseMessage((SmgpHeader) header);
+        SmgpExitResponseMessage message = new SmgpExitResponseMessage((SmgpHeader) header);
         return message;
     }
 

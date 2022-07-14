@@ -138,7 +138,7 @@ public class SmppDataSmRequestMessage extends AbstractSmppMessage {
     public String toString() {
         return "SmppDataSmRequestMessage{" +
                 "header=" + this.getHeader().toString() +
-                "serviceType='" + serviceType + '\'' +
+                ", serviceType='" + serviceType + '\'' +
                 ", sourceAddrTon=" + sourceAddrTon +
                 ", sourceAddrNpi=" + sourceAddrNpi +
                 ", sourceAddr='" + sourceAddr + '\'' +

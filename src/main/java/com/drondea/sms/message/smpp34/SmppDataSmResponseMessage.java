@@ -38,7 +38,7 @@ public class SmppDataSmResponseMessage extends AbstractSmppMessage {
     public String toString() {
         return "SmppDataSmResponseMessage{" +
                 "header=" + this.getHeader().toString() +
-                "messageId='" + messageId + '\'' +
+                ", messageId='" + messageId + '\'' +
                 '}';
     }
 }

@@ -85,4 +85,9 @@ public class SendFailMessage implements IMessage{
     public long getSendTimeStamp() {
         return 0;
     }
+
+    @Override
+    public boolean isActiveTestMessage() {
+        return false;
+    }
 }

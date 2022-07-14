@@ -55,6 +55,7 @@ public class SmgpSubmitRequestMessage extends AbstractSmgpMessage implements ILo
     private SmsMessage msg;
     private String signature;
     private String batchNumber;
+    private boolean isFixedSignature;
 
     public SmgpSubmitRequestMessage(SmgpHeader header) {
         super(SmgpPackageType.SUBMITREQUEST, header);
@@ -409,32 +410,6 @@ public class SmgpSubmitRequestMessage extends AbstractSmgpMessage implements ILo
     }
 
     @Override
-    public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("SmgpSubmitRequestMessage:[SequenceId=").append(
-                getHeader().getSequenceId()).append(",");
-        buffer.append("CommandId=").append(getHeader().getCommandId()).append(",");
-        buffer.append("msgType=").append(msgType).append(",");
-        buffer.append("needReport=").append(needReport).append(",");
-        buffer.append("validTime=").append(validTime).append(",");
-        buffer.append("atTime=").append(atTime).append(",");
-        buffer.append("srcTermId=").append(srcTermId).append(",");
-        buffer.append("chargeTermId=").append(chargeTermId).append(",");
-        buffer.append("destTermIdArray={");
-        for (int i = 0; i < destTermIdCount; i++) {
-            if (i == 0) {
-                buffer.append(destTermIdArray[i]);
-            } else {
-                buffer.append(";" + destTermIdArray[i]);
-            }
-        }
-        buffer.append("},");
-        buffer.append("msgContent=").append(getMsgContent()).append("]");
-        buffer.append("reserve=").append(getReserve()).append("]");
-        return buffer.toString();
-    }
-
-    @Override
     public int getBodyLength() {
         int length = 114 + 21 * getDestTermIdCount() + getMsgLength();
         if (0x13 == SmgpConstants.DEFAULT_VERSION) {//0x13 版本 没有 FixedFee 6字节
@@ -541,5 +516,41 @@ public class SmgpSubmitRequestMessage extends AbstractSmgpMessage implements ILo
         return this.batchNumber;
     }
 
+    @Override
+    public boolean isFixedSignature() {
+        return isFixedSignature;
+    }
 
+    public void setFixedSignature(boolean fixedSignature) {
+        isFixedSignature = fixedSignature;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("SmgpSubmitRequestMessage:[SequenceId=").append(
+                getHeader().getSequenceId()).append(",");
+        buffer.append("CommandId=").append(getHeader().getCommandId()).append(",");
+        buffer.append("msgType=").append(msgType).append(",");
+        buffer.append("needReport=").append(needReport).append(",");
+        buffer.append("validTime=").append(validTime).append(",");
+        buffer.append("atTime=").append(atTime).append(",");
+        buffer.append("srcTermId=").append(srcTermId).append(",");
+        buffer.append("chargeTermId=").append(chargeTermId).append(",");
+        buffer.append("priority=").append(priority).append(",");
+        buffer.append("serviceId=").append(serviceId).append(",");
+        buffer.append("chargeTermId=").append(chargeTermId).append(",");
+        buffer.append("destTermIdArray={");
+        for (int i = 0; i < destTermIdCount; i++) {
+            if (i == 0) {
+                buffer.append(destTermIdArray[i]);
+            } else {
+                buffer.append(";" + destTermIdArray[i]);
+            }
+        }
+        buffer.append("},");
+        buffer.append("msgContent=").append(getMsgContent()).append("]");
+        buffer.append("reserve=").append(getReserve()).append("]");
+        return buffer.toString();
+    }
 }

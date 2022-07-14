@@ -52,6 +52,8 @@ public class SmgpClientConnector extends AbstractClientConnector {
         pipeline.addLast("FrameDecoder", new LengthFieldBasedFrameDecoder(4 * 1024, 0, 4, -4, 0, true));
         //编解码器
         pipeline.addLast("SmgpMessageCodec", Smgp30MessageCodec.getInstance());
+        //记录日志
+        pipeline.addLast("MessageLogHandler", GlobalConstants.MESSAGE_LOG_HANDLER);
         //session管理
         pipeline.addLast("SessionHandler", new SessionHandler(getSessionManager()));
     }

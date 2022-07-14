@@ -49,10 +49,10 @@ public class SgipClientConnector extends AbstractClientConnector {
         pipeline.addLast("LoggingHandler", new LoggingHandler(String.format(GlobalConstants.BYTE_LOG_PREFIX, socketConfig.getId()), LogLevel.DEBUG));
         //粘包处理,Sgip的
         pipeline.addLast("FrameDecoder", new LengthFieldBasedFrameDecoder(4 * 1024, 0, 4, -4, 0, true));
-
         //打包、解包
         pipeline.addLast("SgipMessageCodec", Sgip12MessageCodec.getInstance());
-
+        //记录日志
+        pipeline.addLast("MessageLogHandler", GlobalConstants.MESSAGE_LOG_HANDLER);
         //session管理
         pipeline.addLast("SessionHandler", new SessionHandler(getSessionManager()));
     }

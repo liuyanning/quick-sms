@@ -264,6 +264,8 @@ public class CmppDeliverRequestMessage extends AbstractCmppMessage implements IL
     @Override
     public CmppDeliverRequestMessage generateMessage(LongMessageSlice slice, int sequenceId) throws Exception {
         CmppDeliverRequestMessage requestMessage = (CmppDeliverRequestMessage) this.clone();
+        requestMessage.setPkNumber(slice.getPkNumber());
+        requestMessage.setPkTotal(slice.getPkTotal());
         requestMessage.setTpUdhi(slice.getTpUdhi());
         requestMessage.setMsgFmt((SmsDcs) slice.getMsgFmt());
         requestMessage.setMsgContentBytes(slice.getMsgContentBytes());
@@ -367,11 +369,16 @@ public class CmppDeliverRequestMessage extends AbstractCmppMessage implements IL
     }
 
     @Override
+    public boolean isFixedSignature() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         if (isReport()) {
             sb.append("CmppDeliverRequestMessage [msgId=").append(msgId).append(", destId=").append(destId).append(", srcTerminalId=").append(srcTerminalId)
-                    .append(", getHeader()=").append(getHeader()).append(", ReportRequest=").append(getReportRequestMessage()).append("]");
+                    .append(", sequenceId=").append(getHeader().getSequenceId()).append(", ReportRequest=").append(getReportRequestMessage()).append("]");
             return sb.toString();
         }
         sb.append("CmppDeliverRequestMessage [msgId=").append(msgId).append(", destId=").append(destId).append(", srcTerminalId=").append(srcTerminalId)

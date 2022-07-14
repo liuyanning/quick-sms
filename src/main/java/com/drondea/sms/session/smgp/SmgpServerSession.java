@@ -2,7 +2,6 @@ package com.drondea.sms.session.smgp;
 
 import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.util.CommonUtil;
-import com.drondea.sms.conf.ServerSocketConfig;
 import com.drondea.sms.handler.limiter.AbstractCounterLimitHandler;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.smgp30.msg.AbstractSmgpMessage;
@@ -64,9 +63,9 @@ public class SmgpServerSession extends AbstractServerSession {
         long timestamp = msg.getTimestamp();
         UserChannelConfig userChannelConfig = sessionManager.getUserChannelConfig(clientId);
         short version = msg.getClientVersion();
-        if (userChannelConfig == null || !validIpAddress(userChannelConfig, getChannel())) {
+        if (userChannelConfig == null) {
             //登录失败
-            sendLoginFailed(msg, userChannelConfig, 20, version);
+            sendLoginFailed(msg, null, 20, version);
             return;
         }
         setUserName(userChannelConfig.getUserName());
@@ -78,10 +77,10 @@ public class SmgpServerSession extends AbstractServerSession {
         }
 
         int validResult = validClientMsg(authenticatorSource, timestamp, userChannelConfig);
-
+        boolean isValidIp = validIpAddress(userChannelConfig, getChannel());
         logger.debug("登录结果 {}, {}", validResult, customValidResult);
         //验证成功
-        if (customValidResult && validResult == 0) {
+        if (customValidResult && validResult == 0 && isValidIp) {
             //添加session说明超过最大的连接限制数
             boolean addResult = sessionManager.addUserSession(userChannelConfig, this);
             logger.debug("校验成功,添加用户, {}", addResult);
@@ -89,9 +88,10 @@ public class SmgpServerSession extends AbstractServerSession {
                 setState(STATE_LOGIN_SUCCESS);
 
                 sendLoginSuccess(msg, userChannelConfig, version);
-
+                //只有2和3才推送状态和MO
+                boolean sendDeliver = msg.getLoginMode() > 0;
                 //登录成功后的处理
-                doAfterLogin(userChannelConfig);
+                doAfterLogin(userChannelConfig, sendDeliver);
 
                 //增加业务处理
                 addBIZHandler();
@@ -100,11 +100,13 @@ public class SmgpServerSession extends AbstractServerSession {
                 //超过限制了失败
                 validResult = 2;
             }
-
         } else {
             validResult = 21;
         }
-
+        //IP不合法错误码23
+        if (!isValidIp) {
+            validResult = 23;
+        }
         failedLogin(userChannelConfig, msg, validResult);
         //登录失败
         sendLoginFailed(msg, userChannelConfig, validResult, version);
@@ -169,8 +171,8 @@ public class SmgpServerSession extends AbstractServerSession {
 
         pipeline.addLast("ServerSessionFilterHandler", SmgpConstants.SERVER_SESSION_FILTER_HANDLER);
 
-        ServerSocketConfig connConf = getConfiguration();
-        int idleTime = connConf.getIdleTime() == 0 ? 30 : connConf.getIdleTime();
+        UserChannelConfig userChannelConfig = getUserChannelConfig();
+        int idleTime = userChannelConfig.getIdleTime() == 0 ? 30 : userChannelConfig.getIdleTime();
         //心跳检测,在idleTime秒没有读写就写入activeTest请求，如果idleTime * 3服务器没有相应数据那么关掉连接
         pipeline.addLast("IdleStateHandler",
                 new IdleStateHandler(idleTime * 3, 0, idleTime, TimeUnit.SECONDS));
@@ -192,7 +194,7 @@ public class SmgpServerSession extends AbstractServerSession {
 
         pipeline.addLast("ActiveTestRequestHandler", SmgpConstants.ACTIVE_TEST_REQUEST_HANDLER);
         pipeline.addLast("ActiveTestResponseHandler", SmgpConstants.ACTIVE_TEST_RESPONSE_HANDLER);
-        pipeline.addLast("TerminateRequestHandler", SmgpConstants.TERMINATE_REQUEST_MESSAGE_HANDLER);
+        pipeline.addLast("TerminateRequestHandler", SmgpConstants.EXIT_REQUEST_MESSAGE_HANDLER);
         pipeline.addLast("TerminateResponseHandler", SmgpConstants.TERMINATE_RESPONSE_MESSAGE_HANDLER);
 //
 //        //用户事件处理器

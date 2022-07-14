@@ -25,10 +25,11 @@ public class SgipServerTest {
         SgipServerCustomHandler customHandler = new SgipServerCustomHandler();
 
         SgipServerSessionManager sessionManager = new SgipServerSessionManager(name -> {
-            if (name.startsWith("100625")) {
+            if (name.startsWith("100001")) {
                 UserChannelConfig userChannelConfig = new UserChannelConfig();
                 userChannelConfig.setUserName(name);
-                userChannelConfig.setPassword("SQnDnl");
+                userChannelConfig.setPassword("123123");
+                userChannelConfig.setChannelLimit(3);
 //                userChannelConfig.setQpsLimit(5000);
                 return userChannelConfig;
             }

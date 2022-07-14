@@ -12,6 +12,7 @@ import com.drondea.sms.message.smgp30.msg.SmgpReportMessage;
 import com.drondea.sms.thirdparty.SmsDcs;
 import com.drondea.sms.type.SmgpConstants;
 
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,8 @@ public class SmgpDeliverRequestMessageCodec implements ICodec {
 
         short msgLength = (short) (bodyBuffer.readUnsignedByte() & 0xffff);
         requestMessage.setMsgLength(msgLength);
-        if (isReport && msgLength > 0) {//是状态报告
+        //是状态报告
+        if (isReport && msgLength > 0) {
             SmgpReportMessage report = new SmgpReportMessage();
 
             String temp = bodyBuffer.readCharSequence("id:".length(), SmgpConstants.DEFAULT_TRANSPORT_CHARSET).toString();
@@ -61,7 +63,8 @@ public class SmgpDeliverRequestMessageCodec implements ICodec {
             report.setErr(bodyBuffer.readCharSequence(3, SmgpConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());
 
             temp = bodyBuffer.readCharSequence(" text:".length(), SmgpConstants.DEFAULT_TRANSPORT_CHARSET).toString();
-            report.setTxt(bodyBuffer.readCharSequence(20, SmgpConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());
+            //读取剩余的长度，标准是20个字节，福建电信是3个字节，
+            report.setTxt(bodyBuffer.readCharSequence(msgLength - 102, SmgpConstants.DEFAULT_TRANSPORT_CHARSET).toString().trim());
 
             requestMessage.setReport(report);
         } else {//mo
@@ -81,19 +84,23 @@ public class SmgpDeliverRequestMessageCodec implements ICodec {
     @Override
     public ByteBuf encode(IMessage msg, ByteBuf bodyBuffer) throws Exception {
         SmgpDeliverRequestMessage message = (SmgpDeliverRequestMessage) msg;
-        bodyBuffer.writeBytes(SmgpMsgIdUtil.msgId2Bytes(message.getSmgpMsgId()));//10
-        bodyBuffer.writeByte(message.isReport() ? (byte) 1 : (byte) 0);//1
-        bodyBuffer.writeByte(message.getMsgFmt().getValue());//1
+        //10
+        bodyBuffer.writeBytes(SmgpMsgIdUtil.msgId2Bytes(message.getSmgpMsgId()));
+        //1
+        bodyBuffer.writeByte(message.isReport() ? (byte) 1 : (byte) 0);
+        //1
+        bodyBuffer.writeByte(message.getMsgFmt().getValue());
         bodyBuffer.writeBytes(CommonUtil.ensureLength(message.getRecvTime().
                 getBytes(SmgpConstants.DEFAULT_TRANSPORT_CHARSET), 14));
         bodyBuffer.writeBytes(CommonUtil.ensureLength(message.getSrcTermId().
                 getBytes(SmgpConstants.DEFAULT_TRANSPORT_CHARSET), 21));
         bodyBuffer.writeBytes(CommonUtil.ensureLength(message.getDestTermId().
                 getBytes(SmgpConstants.DEFAULT_TRANSPORT_CHARSET), 21));
-
-        if (message.isReport()) {//是状态报告
+        //是状态报告
+        if (message.isReport()) {
             SmgpReportMessage report = message.getReport();
-            bodyBuffer.writeByte((short) SmgpReportMessage.LENGTH);//短消息长度
+            //短消息长度
+            bodyBuffer.writeByte((short) SmgpReportMessage.LENGTH);
             bodyBuffer.writeBytes("id:".getBytes());
             bodyBuffer.writeBytes(SmgpMsgIdUtil.msgId2Bytes(report.getSmgpMsgId()));
             bodyBuffer.writeBytes(" sub:".getBytes());
@@ -118,8 +125,10 @@ public class SmgpDeliverRequestMessageCodec implements ICodec {
             bodyBuffer.writeBytes(CommonUtil.ensureLength(report.getTxt().
                     getBytes(SmgpConstants.DEFAULT_TRANSPORT_CHARSET), 20));
         } else {
-            bodyBuffer.writeByte(message.getMsgLength());//短消息长度
-            bodyBuffer.writeBytes(message.getBMsgContent());//短消息内容
+            //短消息长度
+            bodyBuffer.writeByte(message.getMsgLength());
+            //短消息内容
+            bodyBuffer.writeBytes(message.getBMsgContent());
         }
 
         bodyBuffer.writeBytes(CommonUtil.ensureLength(message.getReserve().

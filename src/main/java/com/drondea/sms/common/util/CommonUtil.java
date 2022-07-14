@@ -185,8 +185,11 @@ public final class CommonUtil {
         if (configuration instanceof ClientSocketConfig) {
             ClientSocketConfig clientSocketConfig = (ClientSocketConfig) configuration;
             smsSignature = msg.getMsgSignature();
+            //只对混合通道生效，是否固定签名消息
+            boolean fixedSignature = msg.isFixedSignature();
             signaturePosition = clientSocketConfig.getSignaturePosition();
-            isRemoveSignature = checkRemoveSignature(clientSocketConfig.getSignatureDirection(), signaturePosition, smsSignature, msgContent);
+            isRemoveSignature = checkRemoveSignature(clientSocketConfig.getSignatureDirection(), signaturePosition,
+                    smsSignature, msgContent, fixedSignature);
         }
 
         List<LongMessageSlice> longMessageSlices;
@@ -218,8 +221,13 @@ public final class CommonUtil {
     }
 
     private static boolean checkRemoveSignature(SignatureDirection signatureDirection, SignaturePosition signaturePosition,
-                                                String smsSignature, SmsMessage msgContent) {
+                                                String smsSignature, SmsMessage msgContent, boolean isFixedSignature) {
+        //自定义不需要去签名
         if (SignatureDirection.CUSTOM.equals(signatureDirection)) {
+            return false;
+        }
+        //混合签名,必须设置isFixedSignature,为否的话不去签名
+        if (!isFixedSignature && SignatureDirection.MIXED.equals(signatureDirection)) {
             return false;
         }
 

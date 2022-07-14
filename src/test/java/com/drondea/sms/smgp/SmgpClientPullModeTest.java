@@ -35,11 +35,13 @@ public class SmgpClientPullModeTest {
 
     static AtomicInteger sum = new AtomicInteger();
     public static void main(String[] args) throws InterruptedException {
+//        GlobalConstants.METRICS_CONSOLE_ON = true;
+//        GlobalConstants.METRICS_ON = true;
 
 //        //本地测试
         String host = "127.0.0.1";
-        String userName = "100506";
-        String password = "w0akYC";
+        String userName = "100003";
+        String password = "123123";
         int port = 8891;
 
         //滑动窗口建议值为16
@@ -88,8 +90,7 @@ public class SmgpClientPullModeTest {
                 requestMessage.setMsgContent(message);
                 requestMessage.setServiceId("1");
                 requestMessage.setMsgSrc("AAAA");
-                //码号
-                requestMessage.setSrcTermId("1069");
+                requestMessage.setSrcTermId("" + (int) (Math.random() * 1000));
                 requestMessage.setNeedReport(true);
                 requestMessage.setDestTermIdArray(new String[]{"17303110626"});
                 requestMessage.setReserve("1234567");

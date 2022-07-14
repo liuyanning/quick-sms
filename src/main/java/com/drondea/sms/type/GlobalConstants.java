@@ -3,8 +3,9 @@ package com.drondea.sms.type;
 
 import com.drondea.sms.common.CommonSequenceNumber;
 import com.drondea.sms.common.SmgpSequenceNumber;
+import com.drondea.sms.handler.MessageLogHandler;
 import com.drondea.sms.handler.ServerMetricsMeterHandler;
-import com.drondea.sms.handler.TailHandler;
+import com.drondea.sms.handler.TailBizHandler;
 
 /**
  * @version V3.0.0
@@ -40,7 +41,8 @@ public class GlobalConstants {
     public static final String MUTL_MOBILE_SPLIT = "\\||,|，|\r\n|\n";
 
     public final static ServerMetricsMeterHandler SERVER_METRICS_METER_HANDLER = new ServerMetricsMeterHandler();
-    public final static TailHandler TAIL_HANDLER = new TailHandler();
+    public final static TailBizHandler TAIL_HANDLER = new TailBizHandler();
+    public final static MessageLogHandler MESSAGE_LOG_HANDLER = new MessageLogHandler();
 
     public static IBatchNumberCreator getBatchNumberCreator() {
         return batchNumberCreator;

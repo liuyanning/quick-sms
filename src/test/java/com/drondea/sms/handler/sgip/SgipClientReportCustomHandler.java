@@ -51,7 +51,7 @@ public class SgipClientReportCustomHandler extends ICustomHandler {
             while (true) {
 
                 if (!channelSession.isWritable()) {
-                    //                    System.out.println("不可写");
+                    System.out.println("不可写");
                     //                    continue;
                 }
                 SgipSequenceNumber submitSequenceNumber = new SgipSequenceNumber(11, 22, 33);
@@ -71,7 +71,7 @@ public class SgipClientReportCustomHandler extends ICustomHandler {
                 requestMessage.setMessageResponseHandler(new IMessageResponseHandler() {
                     @Override
                     public void messageComplete(IMessage request, IMessage response) {
-//                        System.out.println("完成:" + request.getSequenceId());
+                        System.out.println("完成:" + request.getSequenceId());
                     }
 
                     @Override
@@ -91,9 +91,7 @@ public class SgipClientReportCustomHandler extends ICustomHandler {
 //                        e.printStackTrace();
 //                    }
 //                }
-                executor.submit(() -> {
-                    channelSession.sendMessage(requestMessage);
-                });
+                channelSession.sendMessage(requestMessage);
                 //                channel.writeAndFlush(requestMessage);
                 i++;
                 if (i == 1) {

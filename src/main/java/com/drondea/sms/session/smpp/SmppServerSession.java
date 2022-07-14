@@ -60,6 +60,7 @@ public class SmppServerSession extends AbstractServerSession {
         }
         setUserName(userChannelConfig.getUserName());
         if (!validIpAddress(userChannelConfig, getChannel())) {
+            failedLogin(userChannelConfig, msg, 10);
             //登录失败
             sendLoginFailed(msg, 10);
             return;
@@ -106,7 +107,6 @@ public class SmppServerSession extends AbstractServerSession {
 
     private void sendLoginSuccess(SmppBindTransceiverRequestMessage msg, UserChannelConfig userChannelConfig, short version) {
         SmppBindTransceiverResponseMessage responseMessage = createConnectResponseMsg(msg, SmppConstants.STATUS_OK);
-
         sendMessage(responseMessage);
     }
 
@@ -151,8 +151,8 @@ public class SmppServerSession extends AbstractServerSession {
 
         pipeline.addLast("ServerSessionFilterHandler", SmppConstants.SERVER_SESSION_FILTER_HANDLER);
 
-        ServerSocketConfig connConf = getConfiguration();
-        int idleTime = connConf.getIdleTime() == 0 ? 30 : connConf.getIdleTime();
+        UserChannelConfig userChannelConfig = getUserChannelConfig();
+        int idleTime = userChannelConfig.getIdleTime() == 0 ? 30 : userChannelConfig.getIdleTime();
         //心跳检测,在idleTime秒没有读写就写入activeTest请求，如果idleTime * 3服务器没有相应数据那么关掉连接
         pipeline.addLast("IdleStateHandler",
                 new IdleStateHandler(idleTime * 3, 0, idleTime, TimeUnit.SECONDS));

@@ -22,5 +22,10 @@ public class SmppCancelSmResponseMessage extends AbstractSmppMessage {
         return 0;
     }
 
-
+    @Override
+    public String toString() {
+        return "SmppCancelSmResponseMessage{" +
+                "header=" + this.getHeader().toString() +
+                '}';
+    }
 }

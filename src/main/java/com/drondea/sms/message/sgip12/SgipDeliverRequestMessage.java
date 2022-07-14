@@ -177,6 +177,8 @@ public class SgipDeliverRequestMessage extends AbstractSgipMessage implements IL
     @Override
     public SgipDeliverRequestMessage generateMessage(LongMessageSlice frame, int sequenceNumber) throws Exception {
         SgipDeliverRequestMessage requestMessage = (SgipDeliverRequestMessage) this.clone();
+        requestMessage.setPkNumber(frame.getPkNumber());
+        requestMessage.setPkTotal(frame.getPkTotal());
         requestMessage.setTpUdhi(frame.getTpUdhi());
         requestMessage.setMessageCoding((SmsDcs) frame.getMsgFmt());
         requestMessage.setMsgContentBytes(frame.getMsgContentBytes());
@@ -279,6 +281,12 @@ public class SgipDeliverRequestMessage extends AbstractSgipMessage implements IL
     public void setPkNumber(short pkNumber) {
         this.pkNumber = pkNumber;
     }
+
+    @Override
+    public boolean isFixedSignature() {
+        return false;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

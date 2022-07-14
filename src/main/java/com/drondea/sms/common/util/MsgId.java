@@ -19,6 +19,9 @@ public class MsgId implements Serializable {
     private int hour;
     private int minutes;
     private int seconds;
+    /**
+     * cmpp协议规定最大22bit，可以代表最大值4194303
+     */
     private int gateId;
     private int sequenceId;
 
@@ -52,7 +55,6 @@ public class MsgId implements Serializable {
         }catch(Exception e){
 
         }
-
     }
 
     public MsgId() {
@@ -270,5 +272,4 @@ public class MsgId implements Serializable {
         }
         return true;
     }
-
 }

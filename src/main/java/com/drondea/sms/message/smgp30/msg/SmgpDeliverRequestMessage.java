@@ -12,6 +12,8 @@ import com.drondea.sms.thirdparty.SmsMessage;
 import com.drondea.sms.thirdparty.SmsTextMessage;
 import com.drondea.sms.type.GlobalConstants;
 import com.drondea.sms.type.SmgpConstants;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -258,6 +260,9 @@ public class SmgpDeliverRequestMessage extends AbstractSmgpMessage implements IL
     }
 
     private String msgIdString() {
+        if (msgId == null) {
+            return "";
+        }
         return msgId.toString();
     }
 
@@ -273,25 +278,6 @@ public class SmgpDeliverRequestMessage extends AbstractSmgpMessage implements IL
         }
 
         return "";
-    }
-
-    @Override
-    public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("SmgpDeliverRequestMessage:[sequenceId=").append(
-                getHeader().getSequenceId()).append(",");
-        buffer.append("CommandId=").append(getHeader().getCommandId()).append(",");
-        buffer.append("msgId=").append(msgIdString()).append(",");
-        buffer.append("recvTime=").append(recvTime).append(",");
-        buffer.append("srcTermId=").append(srcTermId).append(",");
-        buffer.append("destTermId=").append(destTermId).append(",");
-        if (isReport) {
-            buffer.append("ReportData=").append(getReport()).append("]");
-            return buffer.toString();
-        }
-        buffer.append("msgContent=").append(getMsgContent()).append("]");
-
-        return buffer.toString();
     }
 
     @Override
@@ -314,7 +300,8 @@ public class SmgpDeliverRequestMessage extends AbstractSmgpMessage implements IL
     @Override
     public SmgpDeliverRequestMessage generateMessage(LongMessageSlice frame, int sequenceId) throws Exception {
         SmgpDeliverRequestMessage requestMessage = (SmgpDeliverRequestMessage) this.clone();
-
+        requestMessage.setPkNumber(frame.getPkNumber());
+        requestMessage.setPkTotal(frame.getPkTotal());
         requestMessage.setTpUdhi((byte) frame.getTpUdhi());
         requestMessage.setMsgFmt((SmsDcs) frame.getMsgFmt());
         requestMessage.setBMsgContent(frame.getMsgContentBytes());
@@ -406,5 +393,29 @@ public class SmgpDeliverRequestMessage extends AbstractSmgpMessage implements IL
             length += getMsgLength();
         }
         return length + getTLVLength();
+    }
+
+    @Override
+    public boolean isFixedSignature() {
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("SmgpDeliverRequestMessage:[sequenceId=").append(
+                getHeader().getSequenceId()).append(",");
+        buffer.append("CommandId=").append(getHeader().getCommandId()).append(",");
+        buffer.append("msgId=").append(msgIdString()).append(",");
+        buffer.append("recvTime=").append(recvTime).append(",");
+        buffer.append("srcTermId=").append(srcTermId).append(",");
+        buffer.append("destTermId=").append(destTermId).append(",");
+        if (isReport) {
+            buffer.append("ReportData=").append(getReport()).append("]");
+            return buffer.toString();
+        }
+        buffer.append("msgContent=").append(getMsgContent()).append("]");
+
+        return buffer.toString();
     }
 }

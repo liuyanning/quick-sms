@@ -3,6 +3,7 @@ package com.drondea.sms.handler.smpp;
 import com.drondea.sms.handler.AbstractLongMessageHandler;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.smpp34.SmppDeliverSmRequestMessage;
+import com.drondea.sms.message.smpp34.SmppDeliverSmResponseMessage;
 import com.drondea.sms.type.SmppConstants;
 import io.netty.channel.ChannelHandler.Sharable;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +24,7 @@ public class SmppDeliverLongMessageHandler extends AbstractLongMessageHandler<Sm
 
     @Override
     protected IMessage responseErr(SmppDeliverSmRequestMessage msg) {
-        SmppDeliverSmRequestMessage responseMessage = new SmppDeliverSmRequestMessage(msg.getHeader());
+        SmppDeliverSmResponseMessage responseMessage = new SmppDeliverSmResponseMessage(msg.getHeader());
         //消息错误
         responseMessage.getHeader().setCommandStatus(SmppConstants.STATUS_SYSERR);
         return responseMessage;

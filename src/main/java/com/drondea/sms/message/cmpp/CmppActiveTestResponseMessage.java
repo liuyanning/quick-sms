@@ -42,8 +42,12 @@ public class CmppActiveTestResponseMessage extends AbstractCmppMessage {
     }
 
     @Override
+    public boolean isActiveTestMessage() {
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return String.format("CmppActiveTestResponseMessage [Header()=%s]",
-                getHeader().toString());
+        return "CmppActiveTestResponseMessage [Header="+ getHeader().toString() +"]";
     }
 }

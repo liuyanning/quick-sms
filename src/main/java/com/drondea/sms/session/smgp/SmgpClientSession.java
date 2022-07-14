@@ -9,7 +9,6 @@ import com.drondea.sms.message.smgp30.msg.SmgpConnectRequestMessage;
 import com.drondea.sms.message.smgp30.msg.SmgpConnectResponseMessage;
 import com.drondea.sms.session.AbstractClientSession;
 import com.drondea.sms.session.SessionManager;
-import com.drondea.sms.type.GlobalConstants;
 import com.drondea.sms.type.ICustomHandler;
 import com.drondea.sms.type.SmgpConstants;
 
@@ -74,7 +73,7 @@ public class SmgpClientSession extends AbstractClientSession {
             version = SmgpConstants.DEFAULT_VERSION;
         }
         requestMessage.setClientVersion((byte) version);
-        requestMessage.setLoginMode((byte) 2);
+        requestMessage.setLoginMode(connConf.getLoginMode());
         setState(STATE_LOGINING);
         //发送登录数据
         sendMessage(requestMessage);
@@ -105,7 +104,7 @@ public class SmgpClientSession extends AbstractClientSession {
 
         pipeline.addLast("ActiveTestRequestHandler", SmgpConstants.ACTIVE_TEST_REQUEST_HANDLER);
         pipeline.addLast("ActiveTestResponseHandler", SmgpConstants.ACTIVE_TEST_RESPONSE_HANDLER);
-        pipeline.addLast("TerminateRequestHandler", SmgpConstants.TERMINATE_REQUEST_MESSAGE_HANDLER);
+        pipeline.addLast("TerminateRequestHandler", SmgpConstants.EXIT_REQUEST_MESSAGE_HANDLER);
         pipeline.addLast("TerminateResponseHandler", SmgpConstants.TERMINATE_RESPONSE_MESSAGE_HANDLER);
 
         //用户事件处理器

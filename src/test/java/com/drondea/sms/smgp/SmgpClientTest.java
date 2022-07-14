@@ -20,18 +20,11 @@ public class SmgpClientTest {
 //        GlobalConstants.METRICS_CONSOLE_ON = true;
 //        GlobalConstants.METRICS_ON = true;
 
-
 //        //本地测试
         String host = "127.0.0.1";
         String userName = "100003";
         String password = "123123";
         int port = 8891;
-
-        //线上 智明通讯(电信) 地址
-//        String host = "61.129.57.39";
-//        String userName = "6094";
-//        String password = "6094";
-//        int port = 8080;
 
         //滑动窗口建议值为16
         SmgpClientSocketConfig socketConfig = new SmgpClientSocketConfig("test",
@@ -40,7 +33,7 @@ public class SmgpClientTest {
         socketConfig.setUserName(userName);
         socketConfig.setPassword(password);
         socketConfig.setVersion(SmgpConstants.DEFAULT_VERSION);
-
+//        socketConfig.setLoginMode((byte) 0);
         //限速 条/s
 //        socketConfig.setQpsLimit(5000);
         //移除标签

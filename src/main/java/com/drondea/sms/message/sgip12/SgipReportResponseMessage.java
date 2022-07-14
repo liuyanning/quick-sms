@@ -53,8 +53,6 @@ public class SgipReportResponseMessage extends AbstractSgipMessage {
 
     @Override
     public String toString() {
-        return String
-                .format("SgipReportResponseMessage [result=%s, reserve=%s,  header=%s]",
-                        result, reserve,  getHeader().toString());
+        return "SgipReportResponseMessage [result="+result+",reserve="+reserve+",header="+getHeader().toString()+"]";
     }
 }

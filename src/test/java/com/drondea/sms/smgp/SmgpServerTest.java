@@ -19,7 +19,7 @@ import java.io.InputStreamReader;
 public class SmgpServerTest {
 
     public static void main(String[] args) {
-        GlobalConstants.METRICS_CONSOLE_ON = true;
+//        GlobalConstants.METRICS_CONSOLE_ON = true;
 //        GlobalConstants.METRICS_ON = true;
         SmgpServerSocketConfig socketConfig = new SmgpServerSocketConfig("test", 8891);
 

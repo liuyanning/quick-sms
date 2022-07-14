@@ -2,6 +2,7 @@ package com.drondea.sms.handler.smgp;
 
 import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.SequenceNumber;
+import com.drondea.sms.common.util.CommonUtil;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.message.smgp30.msg.SmgpSubmitRequestMessage;
 import com.drondea.sms.thirdparty.SmsAlphabet;
@@ -19,6 +20,7 @@ import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
@@ -44,68 +46,68 @@ public class SmgpClientCustomHandler extends ICustomHandler {
 
 
         System.out.println("smgp用户登录成功--开始发送短信");
-//
-//
-//            int i = 0;
-//            while (true) {
-//
-//                if (!channelSession.isWritable()) {
-//                                        System.out.println("不可写");
-//                    //                    continue;
-//                }
-////                if (i == 0) {
-////                    System.out.println("不发送短信 直接 break  ");
-////                    break;
-////                }
-//                SmgpSubmitRequestMessage requestMessage = new SmgpSubmitRequestMessage();
-//                SequenceNumber sequenceNumber = channelSession.getSequenceNumber();
-//                requestMessage.getHeader().setSequenceId(sequenceNumber.next());
-//                    String message = i+"您好您的验证码是：长短信您好您的验证码是：您好您的验证码是：您好您的验证码是：您好您的验证码是：您好您的验证码是：" +
-//                            "您好您的验证码是：您好您的验证码是：您好您的验证码是：您好您的验证码是：" +
-//                            "您好您的验证码是：您好您的验证码是：您好您的验证码是：" + Math.random() + "【庄点科技】";
-////                String message = "第条消息哈哈哈哈2" + Math.random();
-//                requestMessage.setMsgContent(message);
-//                requestMessage.setServiceId("1");
-//                requestMessage.setMsgSrc("AAAA");
-//                requestMessage.setSrcTermId("" + (int) (Math.random() * 1000));
-//                requestMessage.setNeedReport(true);
-//                requestMessage.setDestTermIdArray(new String[]{"17303110626"});
-//                requestMessage.setReserve("1234567");
-//                //收到响应的回调
-//                requestMessage.setMessageResponseHandler(new IMessageResponseHandler() {
-//                    @Override
-//                    public void messageComplete(IMessage request, IMessage response) {
-////                            System.out.println(" 客户端提交短信 messageComplete ");
-//                    }
-//
-//                    @Override
-//                    public void messageExpired(String key, IMessage request) {
-//                        System.out.println(" 客户端提交短信 messageExpired ");
-//                    }
-//
-//                    @Override
-//                    public void sendMessageFailed(IMessage request) {
-//
-//                    }
-//                });
-//                requestMessage.setMsgFmt(SmsDcs.getGeneralDataCodingDcs(SmsAlphabet.RESERVED));
-//    //                if(i % 64 == 0) {
-//    //                    try {
-//    //                        Thread.sleep(2, 0);
-//    //                    } catch (InterruptedException e) {
-//    //                        e.printStackTrace();
-//    //                    }
-//    //                }
-//                executor.submit(() -> {
-//                    channelSession.sendMessage(requestMessage);
-//                });
-//
-//                i++;
-//                if (i == 1) {
-//                    System.out.println("只发送一条短信  break  ");
+
+
+            int i = 0;
+            while (true) {
+
+                if (!channelSession.isWritable()) {
+                                        System.out.println("不可写");
+                    //                    continue;
+                }
+//                if (i == 0) {
+//                    System.out.println("不发送短信 直接 break  ");
 //                    break;
 //                }
-//            }
+                SmgpSubmitRequestMessage requestMessage = new SmgpSubmitRequestMessage();
+                SequenceNumber sequenceNumber = channelSession.getSequenceNumber();
+                requestMessage.getHeader().setSequenceId(sequenceNumber.next());
+                    String message = "您好您的验证码是：长短信您好您的验证码是：" + Math.random() + "【庄点科技】";
+//                String message = "第条消息哈哈哈哈2" + Math.random();
+                requestMessage.setMsgContent(message);
+                requestMessage.setServiceId("1");
+                requestMessage.setMsgSrc("AAAA");
+                requestMessage.setSrcTermId("" + (int) (Math.random() * 1000));
+                requestMessage.setNeedReport(true);
+                requestMessage.setDestTermIdArray(new String[]{"17303110626"});
+                requestMessage.setReserve("1234567");
+                //收到响应的回调
+                requestMessage.setMessageResponseHandler(new IMessageResponseHandler() {
+                    @Override
+                    public void messageComplete(IMessage request, IMessage response) {
+//                            System.out.println(" 客户端提交短信 messageComplete ");
+                    }
+
+                    @Override
+                    public void messageExpired(String key, IMessage request) {
+                        System.out.println(" 客户端提交短信 messageExpired ");
+                    }
+
+                    @Override
+                    public void sendMessageFailed(IMessage request) {
+
+                    }
+                });
+                requestMessage.setMsgFmt(SmsDcs.getGeneralDataCodingDcs(SmsAlphabet.UCS2));
+    //                if(i % 64 == 0) {
+    //                    try {
+    //                        Thread.sleep(2, 0);
+    //                    } catch (InterruptedException e) {
+    //                        e.printStackTrace();
+    //                    }
+    //                }
+                //切分长短信
+                List<IMessage> longMsgSlices = CommonUtil.getLongMsgSlices(requestMessage, channelSession.getConfiguration(), sequenceNumber);
+                longMsgSlices.forEach(msg -> {
+                    channelSession.sendMessage(msg);
+                });
+
+                i++;
+                if (i == 6) {
+                    System.out.println("只发送一条短信  break  ");
+                    break;
+                }
+            }
     }
 
     @Override

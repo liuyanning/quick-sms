@@ -20,17 +20,21 @@ public class CmppServerTest {
 
     public static void main(String[] args) {
 //        GlobalConstants.METRICS_CONSOLE_ON = true;
-        CmppServerSocketConfig socketConfig = new CmppServerSocketConfig("test", 7891);
+        CmppServerSocketConfig socketConfig = new CmppServerSocketConfig("test", 7892);
 
         CmppServerCustomHandler customHandler = new CmppServerCustomHandler();
         //服务器端默认版本号2.0
         socketConfig.setVersion(CmppConstants.VERSION_20);
         CmppServerSessionManager sessionManager = new CmppServerSessionManager(name -> {
-            if (name.startsWith("100003")) {
+
+            if (name.startsWith("100001")) {
                 UserChannelConfig userChannelConfig = new UserChannelConfig();
                 userChannelConfig.setUserName(name);
                 userChannelConfig.setId(name);
                 userChannelConfig.setPassword("123123");
+//                userChannelConfig.setIdleTime(5);
+                userChannelConfig.setChannelLimit(5);
+                userChannelConfig.setWindowSize(10000);
 //                userChannelConfig.setQpsLimit(100);
                 return userChannelConfig;
             }

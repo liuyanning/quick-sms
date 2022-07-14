@@ -120,7 +120,7 @@ public class SmppCancelSmRequestMessage extends AbstractSmppMessage {
     @Override
     public String toString() {
         return "SmppCancelSmRequestMessage{" +
-                "serviceType='" + serviceType + '\'' +
+                ", serviceType='" + serviceType + '\'' +
                 ", messageId='" + messageId + '\'' +
                 ", sourceAddrTon=" + sourceAddrTon +
                 ", sourceAddrNpi=" + sourceAddrNpi +

@@ -92,7 +92,7 @@ public class CmppHeader implements IHeader, Cloneable, Serializable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("DefaultHeader [commandId=0x");
+        builder.append("[commandId=0x");
         builder.append(Integer.toHexString(commandId));
         builder.append(", sequenceId=");
         builder.append(sequenceId);

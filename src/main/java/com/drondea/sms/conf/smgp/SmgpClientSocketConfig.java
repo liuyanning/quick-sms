@@ -18,6 +18,10 @@ public class SmgpClientSocketConfig extends ClientSocketConfig {
     private String userName;
     private String password;
 
+    /**
+     * 登录类型，1字节:0＝发送短消息; 1＝接收短消息; 2＝收发短消息(默认);
+     */
+    private byte loginMode = 2;
 
     private String spCode = "";
     /**
@@ -61,6 +65,14 @@ public class SmgpClientSocketConfig extends ClientSocketConfig {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public byte getLoginMode() {
+        return loginMode;
+    }
+
+    public void setLoginMode(byte loginMode) {
+        this.loginMode = loginMode;
     }
 
     public String getSpCode() {

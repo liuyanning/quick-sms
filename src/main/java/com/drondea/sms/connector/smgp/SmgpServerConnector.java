@@ -47,13 +47,12 @@ public class SmgpServerConnector extends AbstractServerConnector {
         SmgpServerSocketConfig socketConfig = (SmgpServerSocketConfig) (getSessionManager().getSocketConfig());
         //日志处理
         pipeline.addLast("LoggingHandler", new LoggingHandler(String.format(GlobalConstants.BYTE_LOG_PREFIX, socketConfig.getId()), LogLevel.DEBUG));
-
         //粘包处理,SMGP粘包处理与 CMPP一致
         pipeline.addLast("FrameDecoder", new LengthFieldBasedFrameDecoder(4 * 1024, 0, 4, -4, 0, true));
-
         //打包、解包
         pipeline.addLast("SmgpMessageCodec", Smgp30MessageCodec.getInstance());
-
+        //记录日志
+        pipeline.addLast("MessageLogHandler", GlobalConstants.MESSAGE_LOG_HANDLER);
         //session管理
         pipeline.addLast("SessionHandler", new SessionHandler(getSessionManager()));
     }

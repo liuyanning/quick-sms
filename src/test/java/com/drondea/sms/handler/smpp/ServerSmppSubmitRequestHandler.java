@@ -3,7 +3,10 @@ package com.drondea.sms.handler.smpp;
 import com.drondea.sms.channel.ChannelSession;
 import com.drondea.sms.common.SequenceNumber;
 import com.drondea.sms.common.util.CommonUtil;
+import com.drondea.sms.message.IMessage;
+import com.drondea.sms.message.cmpp.CmppReportRequestMessage;
 import com.drondea.sms.message.smpp34.SmppDeliverSmRequestMessage;
+import com.drondea.sms.message.smpp34.SmppReportRequestMessage;
 import com.drondea.sms.message.smpp34.SmppSubmitSmRequestMessage;
 import com.drondea.sms.message.smpp34.SmppSubmitSmResponseMessage;
 import com.drondea.sms.type.SmppConstants;
@@ -12,6 +15,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -48,9 +52,10 @@ public class ServerSmppSubmitRequestHandler extends SimpleChannelInboundHandler<
             System.out.println("接受:" + msg.getSequenceId() + " 总数：" + incrementAndGet + ":" + System.currentTimeMillis());
         }
 
+        ChannelSession channelSession = CommonUtil.getChannelSession(ctx.channel());
         SmppSubmitSmResponseMessage response = new SmppSubmitSmResponseMessage(msg.getHeader());
         response.getHeader().setCommandStatus(SmppConstants.STATUS_OK);
-        ctx.channel().writeAndFlush(response);
+        channelSession.sendMessage(response);
 
         //执行发送
 //        Thread.sleep(5000);
@@ -60,43 +65,45 @@ public class ServerSmppSubmitRequestHandler extends SimpleChannelInboundHandler<
 
 //        MsgId msgId = response.getMsgId();
 //
-        ChannelSession channelSession = CommonUtil.getChannelSession(ctx.channel());
         SequenceNumber sequenceNumber = channelSession.getSequenceNumber();
 //        //模拟发送状态回执
-//        SmppDeliverSmRequestMessage deliverRequestMessage = new SmppDeliverSmRequestMessage();
-//        deliverRequestMessage.getHeader().setSequenceNumber(sequenceNumber.next());
-//        deliverRequestMessage.setSourceAddr(msg.getSourceAddr());
-//        deliverRequestMessage.setDestinationAddr(msg.getDestinationAddr());
-//        deliverRequestMessage.setEsmClass((short)4);
-//
-//        deliverRequestMessage.setSmLength(msg.getSmLength());
-//        deliverRequestMessage.setShortMessage(msg.getShortMessage());
-//        deliverRequestMessage.setRegisteredDelivery((short)0);
-//        //状态信息
-//        CmppReportRequestMessage report = new CmppReportRequestMessage();
-//        report.setMsgId(msgId);
-//        report.setStat("DELIVERED");
-//        report.setDestterminalId(msg.getDestTerminalId()[0]);
-//        report.setSubmitTime("2006221701");
-//        report.setDoneTime("2006221701");
-//        deliverRequestMessage.setReportRequestMessage(report);
-//        System.out.println("发送回执了");
-//        ctx.channel().writeAndFlush(deliverRequestMessage);
+        SmppDeliverSmRequestMessage deliverRequestMessage = new SmppDeliverSmRequestMessage();
+        deliverRequestMessage.getHeader().setSequenceNumber(sequenceNumber.next());
+        deliverRequestMessage.setSourceAddr(msg.getSourceAddr());
+        deliverRequestMessage.setDestinationAddr(msg.getDestinationAddr());
+        deliverRequestMessage.setEsmClass((short)4);
+
+        deliverRequestMessage.setSmLength(msg.getSmLength());
+        deliverRequestMessage.setShortMessage(msg.getShortMessage());
+        deliverRequestMessage.setRegisteredDelivery((short)0);
+        //状态信息
+        SmppReportRequestMessage report = new SmppReportRequestMessage();
+        report.setId("123");
+        report.setStat("DELIVERED");
+        report.setDlvrd("");
+        report.setDone_date("2006221701");
+        report.setSubmit_date("2006221701");
+        deliverRequestMessage.setReportRequest(report);
+        System.out.println("发送回执了");
+        channelSession.sendMessage(deliverRequestMessage);
 //        Thread.sleep(5000);
         System.out.println("模拟发送上行短信");
         //模拟发送上行短信
-        SmppDeliverSmRequestMessage request = new SmppDeliverSmRequestMessage();
-        request.getHeader().setSequenceNumber(sequenceNumber.next());
-        request.setMsgContent("测试123");
-        request.setSourceAddrTon((short) 1);
-        request.setSourceAddrNpi((short) 1);
-        request.setSourceAddr("15032618281");
+        SmppDeliverSmRequestMessage moRequest = new SmppDeliverSmRequestMessage();
+        moRequest.getHeader().setSequenceNumber(sequenceNumber.next());
+        moRequest.setMsgContent("测试123");
+        moRequest.setSourceAddrTon((short) 1);
+        moRequest.setSourceAddrNpi((short) 1);
+        moRequest.setSourceAddr("15032618281");
 
-        request.setDestAddrTon((short) 1);
-        request.setDestAddrNpi((short) 1);
+        moRequest.setDestAddrTon((short) 1);
+        moRequest.setDestAddrNpi((short) 1);
 
-        request.setDestinationAddr("10001");
-        ctx.channel().writeAndFlush(request);
+        moRequest.setDestinationAddr("10001");
+        List<IMessage> longMsgSlices = CommonUtil.getLongMsgSlices(moRequest, channelSession.getConfiguration(), sequenceNumber);
+        longMsgSlices.forEach(message -> {
+            channelSession.sendMessage(message);
+        });
         System.out.println("模拟发送端口连接完成");
 
     }

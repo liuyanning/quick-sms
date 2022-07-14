@@ -30,7 +30,6 @@ public class CmppTerminateResponseMessage extends AbstractCmppMessage {
 
     @Override
     public String toString() {
-        return String.format("CmppTerminateRequestMessage [Header()=%s]",
-                getHeader().toString());
+        return "CmppTerminateRequestMessage [Header= "+getHeader().toString()+"]";
     }
 }

@@ -23,6 +23,11 @@ public class SmppEnquireLinkResponseMessage extends AbstractSmppMessage {
     }
 
     @Override
+    public boolean isActiveTestMessage() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "SmppEnquireLinkResponseMessage{" +
                 "header=" + this.getHeader().toString() +

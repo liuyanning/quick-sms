@@ -47,7 +47,6 @@ public class SgipBindResponseMessage extends AbstractSgipMessage {
     }
     @Override
     public String toString() {
-        return String
-                .format("SgipBindResponseMessage [result=%s, reserve=%s, header=%s]",result, reserve,getHeader().toString());
+        return "SgipBindResponseMessage [result="+result+", reserve="+reserve+", header="+getHeader().toString()+"]";
     }
 }
