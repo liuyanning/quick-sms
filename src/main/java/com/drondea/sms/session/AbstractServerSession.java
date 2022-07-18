@@ -442,11 +442,7 @@ public abstract class AbstractServerSession extends ChannelSession implements Wi
 
     @Override
     public void reSendMessage(ChannelHandlerContext ctx, IMessage message, ChannelPromise promise) {
-        if (messageProvider != null) {
-            this.cacheMsg.offer(message);
-        } else {
-            sendWindowMessage(ctx, message, promise);
-        }
+        this.cacheMsg.offer(message);
     }
 
     @Override
