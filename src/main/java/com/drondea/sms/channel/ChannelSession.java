@@ -362,7 +362,7 @@ public abstract class ChannelSession implements SessionChannelListener {
                 setChannelUnWritable(windowMessage.getCtx(), 50);
                 //重发超速的,放到本地缓存重新发送
                 DefaultEventGroupFactory.getInstance().getPullScheduleExecutor().schedule(() -> {
-                    reSendMessage(windowMessage.getCtx(), windowMessage.getMessage(), windowMessage.getPromise());
+                    resendMessage(windowMessage.getMessage());
                 }, 100, TimeUnit.MILLISECONDS);
                 return;
             }
@@ -386,7 +386,7 @@ public abstract class ChannelSession implements SessionChannelListener {
      * 超速重新发送
      * @param message
      */
-    public abstract void reSendMessage(ChannelHandlerContext ctx, IMessage message, ChannelPromise promise);
+    public abstract void resendMessage(IMessage message);
 
     protected void sendWaitingMessage(Window<Integer, ChannelWindowMessage, IMessage> slidingWindow) {
         WaitingMessage<Integer, ChannelWindowMessage> blockingMessage = slidingWindow.pollBlockingMessage();

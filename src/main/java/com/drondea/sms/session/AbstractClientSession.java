@@ -445,7 +445,7 @@ public abstract class AbstractClientSession extends ChannelSession implements Wi
     }
 
     @Override
-    public void reSendMessage(ChannelHandlerContext ctx, IMessage message, ChannelPromise promise) {
+    public void resendMessage(IMessage message) {
         this.cacheMsg.offer(message);
     }
 
