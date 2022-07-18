@@ -21,15 +21,33 @@ github上已经有开源的短信中间件了，为什么还要再开发一套�
 7. 丰富的自定义业务实现接口
 使用此项目将极大简化您的协议开发流程，减少项目风险。此项目已经在我司开源的[短信平台单机版](https://gitee.com/zhuang-dian/sms-platform-stand-alone)中应用，您可参考项目中的应用来实现自己的业务需求。
 
-## 使用说明
+## 对象说明
+1. 客户端对象
+    1)  ClientSessionManager（一个协议一个实现）代表一个客户端账号，可以设置账号、密码、端口号、TCP连接数、限速条数等，会对应一个限速器
+    2) 一个ClientSessionManager对应一个MessageProvider（消息提供者）
+    3) 一个TCP连接对应一个ChannelSession对象，也对应一个Channel(netty)对象
+    4) 一个ChannelSession对象对应一个滑动窗口对象
+2. 服务端对象
+    1)  ServerSessionManager（一个协议一个实现）代表服务器端的一个监听服务，可监听一个端口；可对应一个IValidator对象进行服务器端鉴权，
+        当客户端登陆时，会调用IValidator的getUserChannelConfig获取用户信息，返回UserChannelConfig对象。
+    2) 一个UserChannelConfig对应一个客户信息，包含用户名、密码、限速条数、滑动窗口数等，中间件会据此进行鉴权控速。
+    3) 一个ServerSessionManager可以绑定一个MessageProvider，用于给客户推送消息（例如CMPP推送回执状态）
+    4) 一个TCP连接对应一个ChannelSession对象，也对应一个Channel(netty)对象
+    5) 一个ChannelSession对象对应一个滑动窗口对象
+    
+## 模式说明
 此项目支持两种发送模式，一种是提供消息提供者实现，
 1.  消息提供者模式（推荐）  
-由于上下游处理消息的能力不对等，短信项目中一般会将下游提交的短信放置于缓存和队列中，针对此特点我们设计出消息提供者模式，此模式只需要实现MessageProvider从缓存或者队列中获取要发送的消息即可，无需关心速度控制等细节，我司系统都是基于此模式实现。
+由于上下游处理消息的能力不对等，短信项目中一般会将下游提交的短信放置于缓存和队列中，针对此特点我们设计出消息提供者模式，
+    此模式只需要实现MessageProvider从缓存或者队列中获取要发送的消息即可，无需关心速度控制等细节，我司系统都是基于此模式实现。具体流程如下（以客户端为例）：  
+    1) 一个ClientSessionManager绑定一个MessageProvider对象
+    2) ClientSessionManage连接成功服务端后，每个连接都会调用MessageProvider对象的getTcpMessages方法获取要发送的消息
+    3) 每个连接调用MessageProvider对象的getTcpMessages方法前会检测三个条件：连接是可写的, 连接有发送窗口，满足限速要求
 2.  主动发送模式  
 有两种实现方式：  
-    (1) 通过消息提供者变相实现主动发送可以参考CmppClientPullMode2NormalTest，一个ClientManager对应一个MessageProvider，
+    1) 通过消息提供者变相实现主动发送可以参考CmppClientPullMode2NormalTest，一个ClientManager对应一个MessageProvider，
     也对应一个Queue，往Queen里面放入消息即可。注意需要关注Queen的大小，避免OOM。  
-    (2) 直接使用session.sendMessage()即可，一个session对象代表一个连接，其实原理也是拉取模式，
+    2) 直接使用session.sendMessage()即可，一个session对象代表一个连接，其实原理也是拉取模式，
     往缓存里面写入数据等待MessageProvider拉取。需要通过session.getMessageCacheSize()关注缓存大小，避免OOM。
 
 ## 滑动窗口原理
