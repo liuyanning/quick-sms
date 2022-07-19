@@ -209,6 +209,11 @@ github上已经有开源的短信中间件了，为什么还要再开发一套�
 #### 客户端短信测试软件
   为了方便大家对中间件的理解和应用，我们开源了一个短信测试软件，有需要的同学可以参考https://gitee.com/zhuang-dian/client_tool
   ![image](docs/images/clientTool.png)
+
+#### 服务器端
+  如果你需要服务器端模拟测试，那么你可以启动test包中的服务器端程序来模拟服务器端，
+  以CMPP为例，你可以启动com.drondea.sms.cmpp.CmppServerTest类作为服务器端程序，此类中包含了监听端口、账号、密码等信息可自行修改。
+
 ## 技术讨论
 
 交流QQ群：
