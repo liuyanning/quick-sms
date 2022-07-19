@@ -29,6 +29,6 @@ public class TailBizHandler extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.warn("BlackHoleHandler exceptionCaught on channel {}", ctx.channel(), cause);
+        logger.warn("TailBizHandler exceptionCaught on channel {}", ctx.channel(), cause);
     }
 }
