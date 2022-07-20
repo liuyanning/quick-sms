@@ -213,14 +213,6 @@ public class CmppClientSession extends AbstractClientSession {
             }
 
             return submitResp.getResult() == OVER_SPEED_CODE;
-        } else if (response instanceof CmppDeliverResponseMessage) {
-            CmppDeliverResponseMessage deliverResp = (CmppDeliverResponseMessage) response;
-
-            if ((deliverResp.getResult() != 0L) && (deliverResp.getResult() != OVER_SPEED_CODE)) {
-                logger.error("Receive Err Response result: {} . Req: {} ,Resp:{}",deliverResp.getResult(), request, deliverResp);
-            }
-
-            return deliverResp.getResult() == OVER_SPEED_CODE;
         }
         return false;
     }

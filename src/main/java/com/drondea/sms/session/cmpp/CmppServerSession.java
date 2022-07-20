@@ -41,6 +41,11 @@ public class CmppServerSession extends AbstractServerSession {
     private static final Logger logger = LoggerFactory.getLogger(CmppServerSession.class);
 
     /**
+     * 提交超速错误码
+     */
+    private static final short OVER_SPEED_CODE = 8;
+
+    /**
      * 创建session管理器
      *
      * @param sessionManager
@@ -267,22 +272,14 @@ public class CmppServerSession extends AbstractServerSession {
 
     @Override
     protected boolean needSendLater(IMessage request, IMessage response) {
-        if (response instanceof CmppSubmitResponseMessage) {
-            CmppSubmitResponseMessage submitResp = (CmppSubmitResponseMessage) response;
-
-            if ((submitResp.getResult() != 0L) && (submitResp.getResult() != 8L)) {
-                logger.error("Receive Err Response result: {} . Req: {} ,Resp:{}",submitResp.getResult(), request, submitResp);
-            }
-
-            return submitResp.getResult() == 8L;
-        } else if (response instanceof CmppDeliverResponseMessage) {
+        if (response instanceof CmppDeliverResponseMessage) {
             CmppDeliverResponseMessage deliverResp = (CmppDeliverResponseMessage) response;
 
-            if ((deliverResp.getResult() != 0L) && (deliverResp.getResult() != 8L)) {
+            if ((deliverResp.getResult() != 0L) && (deliverResp.getResult() != OVER_SPEED_CODE)) {
                 logger.error("Receive Err Response result: {} . Req: {} ,Resp:{}",deliverResp.getResult(), request, deliverResp);
             }
 
-            return deliverResp.getResult() == 8L;
+            return deliverResp.getResult() == OVER_SPEED_CODE;
         }
         return false;
     }

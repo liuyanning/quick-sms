@@ -1,6 +1,8 @@
 package com.drondea.sms.type;
 
-import com.google.common.cache.*;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,23 +18,20 @@ import java.util.concurrent.TimeUnit;
 public class DefaultDBStore<T extends Object> implements IDBStore<T> {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultDBStore.class);
-
-    private final RemovalListener<String, Object> removalListener = notification -> {
-        RemovalCause cause = notification.getCause();
-        Object h = notification.getValue();
+    private final RemovalListener<String, Object> removalListener = (key, value, cause) -> {
         switch (cause) {
             case EXPIRED:
             case SIZE:
             case COLLECTED:
                 logger.error("Default DBStore Lost cause by {}. value {}", cause,
-                        h.toString());
+                        value.toString());
             default:
                 return;
         }
     };
 
-    private Cache<String, T> cache = CacheBuilder.newBuilder().
-            expireAfterAccess(2, TimeUnit.HOURS).removalListener(removalListener).build();
+    private Cache<String, T> cache = Caffeine.newBuilder().
+            expireAfterAccess(1, TimeUnit.HOURS).removalListener(removalListener).build();
     private ConcurrentMap<String, T> map = cache.asMap();
 
 

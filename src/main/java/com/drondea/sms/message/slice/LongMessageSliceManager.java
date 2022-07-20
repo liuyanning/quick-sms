@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 //短信片断持久化需要集中保存，因为同一短信的不同分片会从不同的连接发送。可能不在同一台主机。
 //可以使用 Redis.Memcached等。
@@ -77,7 +76,7 @@ public class LongMessageSliceManager {
                     return smsMsg;
                 }
                 String key = new StringBuilder().append(serviceNum).append(slice.getFrameKey()).toString();
-                IDBStore dbStore = GlobalConstants.dbStore;
+                IDBStore dbStore = GlobalConstants.DB_STORE;
                 SliceContainer sliceContainer = (SliceContainer) dbStore.get(key);
                 //判断key是否存在，已经存在，合并短信，不存在就创建FrameHolder并保存
                 if (sliceContainer == null) {

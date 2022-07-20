@@ -4,10 +4,8 @@ package com.drondea.sms.type;
 import com.codahale.metrics.Timer;
 import com.drondea.sms.message.IMessage;
 import com.drondea.sms.windowing.ChannelWindowMessage;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
-import java.util.Date;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -24,7 +22,7 @@ public class DelayResponseCache {
     /**
      * 缓存12分钟，15000条
      */
-    private static final Cache<String, ChannelWindowMessage> MESSAGE_CACHE = CacheBuilder.newBuilder().maximumSize(15000).
+    private static final Cache<String, ChannelWindowMessage> MESSAGE_CACHE = Caffeine.newBuilder().maximumSize(15_000).
             expireAfterWrite(12, TimeUnit.MINUTES).build();
 
     /**
@@ -39,7 +37,7 @@ public class DelayResponseCache {
     }
 
     public static long getCacheSize() {
-        return MESSAGE_CACHE.size();
+        return MESSAGE_CACHE.estimatedSize();
     }
 
     public static ChannelWindowMessage getAndRemoveDelayMessage(String key) {

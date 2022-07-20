@@ -446,7 +446,7 @@ public abstract class ChannelSession implements SessionChannelListener {
         String delayCachedKey = getDelayCachedKey(message);
         //缓存要小于1000个，否则直接超时
         long cacheSize = DelayResponseCache.getCacheSize();
-        if (cacheSize < 10000) {
+        if (cacheSize < 10_000) {
             //把超时消息放到缓存里面等待响应
             DelayResponseCache.putDelayMessage(delayCachedKey, windowMessage);
             return;

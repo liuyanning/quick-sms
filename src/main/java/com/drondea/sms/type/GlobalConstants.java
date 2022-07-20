@@ -30,7 +30,7 @@ public class GlobalConstants {
      */
     public static IBatchNumberCreator batchNumberCreator = new DefaultBatchNumberCreator();
 
-    public static IDBStore dbStore = new DefaultDBStore();
+    public static IDBStore DB_STORE = new DefaultDBStore();
 
     public static int DEFAULT_WINDOW_MONITOR_INTERVAL = -1;
     public static int DEFAULT_REQUEST_EXPIRY_TIMEOUT = 10;

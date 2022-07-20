@@ -22,6 +22,7 @@
     <commons.codec.version>1.11</commons.codec.version>
     <ch-commons-util.version>6.0.2</ch-commons-util.version>
     <com.google.guava.version>28.2-jre</com.google.guava.version>
+    <caffeine.version>2.9.3</caffeine.version>
     <metrics.version>4.1.10</metrics.version>
     <junit.version>4.1.50.Final</junit.version>
     <ch-commons-charset.version>3.0.2</ch-commons-charset.version>
@@ -62,6 +63,11 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${com.google.guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>${caffeine.version}</version>
     </dependency>
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
